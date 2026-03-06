@@ -25,7 +25,7 @@ const collections = [
   {
     name: "Bracelets",
     category: "Bracelets",
-    image: "https://images.unsplash.com/photo-1573408301185-9519f94e1505?w=800&q=80",
+    image: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80",
   },
   {
     name: "Pendants",

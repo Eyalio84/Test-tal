@@ -10,7 +10,7 @@ const products = [
     price: 89,
     category: "Bracelets",
     images: JSON.stringify([
-      "https://images.unsplash.com/photo-1573408301185-9519f94e1505?w=800&q=80",
+      "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80",
     ]),
   },
   {
@@ -73,7 +73,7 @@ const products = [
     price: 75,
     category: "Brooches",
     images: JSON.stringify([
-      "https://images.unsplash.com/photo-1573408301185-9519f94e1505?w=800&q=80",
+      "https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=800&q=80",
     ]),
   },
   {
@@ -83,7 +83,7 @@ const products = [
     price: 55,
     category: "Bracelets",
     images: JSON.stringify([
-      "https://images.unsplash.com/photo-1576022162028-b9c1f12e95a0?w=800&q=80",
+      "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&q=80",
     ]),
   },
 ]
