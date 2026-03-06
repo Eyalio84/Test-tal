@@ -13,9 +13,14 @@ interface Props {
 }
 
 // Pre-render all product pages at build time (SSG)
+// Falls back to empty array if DB is unavailable during build (e.g. Docker)
 export async function generateStaticParams() {
-  const products = await prisma.product.findMany({ select: { slug: true } })
-  return products.map((p) => ({ slug: p.slug }))
+  try {
+    const products = await prisma.product.findMany({ select: { slug: true } })
+    return products.map((p) => ({ slug: p.slug }))
+  } catch {
+    return []
+  }
 }
 
 // Per-product Open Graph + Twitter card metadata
