@@ -29,6 +29,7 @@ const products = [
     description: "Deep blue lab sapphire set in sterling silver. Bold and sophisticated.",
     price: 245,
     category: "Rings",
+    stockCount: 2,
     images: JSON.stringify([
       "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800&q=80",
     ]),
@@ -39,6 +40,7 @@ const products = [
     description: "0.25ct diamond solitaire on a fine 16\" gold chain. A forever piece.",
     price: 185,
     category: "Pendants",
+    stockCount: 3,
     images: JSON.stringify([
       "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&q=80",
     ]),
@@ -59,6 +61,7 @@ const products = [
     description: "Vibrant lab emerald studs in a classic four-prong gold setting.",
     price: 145,
     category: "Earrings",
+    stockCount: 1,
     images: JSON.stringify([
       "https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=800&q=80",
     ]),

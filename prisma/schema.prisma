@@ -54,6 +54,7 @@ model Product {
   images        String      @default("[]")
   category      String?
   inStock       Boolean     @default(true)
+  stockCount    Int?                           // null = unlimited stock
   stripePriceId String?
   orderItems    OrderItem[]
   createdAt     DateTime    @default(now())
