@@ -9,6 +9,7 @@ import { AriaTourOverlay } from "@/components/aria/AriaTourOverlay"
 import { SkipLink } from "@/components/ui/SkipLink"
 import { LiveRegion } from "@/components/ui/LiveRegion"
 import { AccessibilityPanel } from "@/components/ui/AccessibilityPanel"
+import { ShippingBanner } from "@/components/ui/ShippingBanner"
 import "./globals.css"
 
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${playfair.variable} ${inter.variable} ${lexend.variable}`}>
       <body>
         <Providers>
+          <ShippingBanner />
           <SkipLink />
           <Navbar />
           <main id="main-content">{children}</main>
