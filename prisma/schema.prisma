@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -46,23 +46,42 @@ model Session {
 }
 
 model Product {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   name          String
+  slug          String      @unique
   description   String?
   price         Float
-  images        String   @default("[]")
+  images        String      @default("[]")
   category      String?
-  inStock       Boolean  @default(true)
+  inStock       Boolean     @default(true)
   stripePriceId String?
-  createdAt     DateTime @default(now())
+  orderItems    OrderItem[]
+  createdAt     DateTime    @default(now())
 }
 
 model Order {
-  id              String   @id @default(cuid())
+  id              String      @id @default(cuid())
   userId          String
-  user            User     @relation(fields: [userId], references: [id])
-  stripeSessionId String   @unique
-  status          String   @default("pending")
+  user            User        @relation(fields: [userId], references: [id])
+  stripeSessionId String      @unique
+  status          String      @default("pending")
   total           Float
-  createdAt       DateTime @default(now())
+  items           OrderItem[]
+  createdAt       DateTime    @default(now())
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+}
+
+model SiteContent {
+  id        String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

@@ -7,16 +7,22 @@
     "build": "next build",
     "start": "next start"
   },
+  "prisma": {
+    "seed": "node_modules/.bin/tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
-    "@prisma/client": "^7.4.2",
+    "@prisma/client": "^5.22.0",
     "@stripe/stripe-js": "^8.9.0",
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
-    "prisma": "^7.4.2",
+    "prisma": "^5.22.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "stripe": "^20.4.0"
+    "react-hot-toast": "^2.6.0",
+    "resend": "^6.9.3",
+    "stripe": "^20.4.0",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -24,6 +30,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
