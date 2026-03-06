@@ -1,21 +1,27 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { Suspense } from "react"
 import { prisma } from "@/lib/db"
 import { ProductCard } from "@/components/product/ProductCard"
+import { SearchInput } from "@/components/products/SearchInput"
 
 export const metadata: Metadata = {
   title: "Shop",
 }
 
 interface Props {
-  searchParams: Promise<{ category?: string }>
+  searchParams: Promise<{ category?: string; q?: string; maxPrice?: string }>
 }
 
 export default async function ProductsPage({ searchParams }: Props) {
-  const { category } = await searchParams
+  const { category, q, maxPrice } = await searchParams
 
   const products = await prisma.product.findMany({
-    where: category ? { category } : undefined,
+    where: {
+      ...(category ? { category } : {}),
+      ...(q ? { name: { contains: q } } : {}),
+      ...(maxPrice ? { price: { lte: parseFloat(maxPrice) } } : {}),
+    },
     orderBy: { createdAt: "asc" },
   })
 
@@ -26,14 +32,19 @@ export default async function ProductsPage({ searchParams }: Props) {
 
   const categories = [
     "All",
-    ...allProducts.map((p) => p.category).filter(Boolean) as string[],
+    ...(allProducts.map((p) => p.category).filter(Boolean) as string[]),
   ]
 
   return (
     <div className="pt-24 pb-20">
       <div className="max-w-7xl mx-auto px-6">
         <div className="mb-10">
-          <h1 className="font-serif text-3xl text-ink mb-6">Shop</h1>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h1 className="font-serif text-3xl text-ink">Shop</h1>
+            <Suspense>
+              <SearchInput />
+            </Suspense>
+          </div>
 
           {/* Category tabs */}
           <div className="flex flex-wrap gap-3">
