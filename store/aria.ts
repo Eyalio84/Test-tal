@@ -14,11 +14,11 @@ export type AriaCommand =
   | { type: "END_TOUR" }
 
 export interface TourStep {
-  selector: string          // CSS selector of element to spotlight
+  selector?: string         // CSS selector to spotlight — if absent, no dark overlay (page visible)
+  url?: string              // Navigate here when step is shown
   title: string
   description: string
-  position: "top" | "bottom" | "left" | "right"
-  narration?: string        // Text Aria speaks aloud when this step is shown
+  narration: string         // What Aria says aloud at this step
 }
 
 interface AriaStore {
