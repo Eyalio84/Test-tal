@@ -25,12 +25,16 @@ const WS_URL   = "wss://generativelanguage.googleapis.com/ws/google.ai.generativ
 const LIVE_MODEL = "models/gemini-2.5-flash-native-audio-preview-12-2025"
 
 const ARIA_FUNCTIONS = [
-  { name: "navigate",        description: "Navigate to a page in the store",          parameters: { type: "OBJECT", properties: { url:      { type: "STRING", description: "/products, /collections, /about, /products?category=Rings" } }, required: ["url"] } },
-  { name: "scroll_page",     description: "Scroll the page up, down, top, or bottom", parameters: { type: "OBJECT", properties: { direction: { type: "STRING", description: "up | down | top | bottom" }, amount: { type: "NUMBER" } }, required: ["direction"] } },
-  { name: "add_to_cart",     description: "Add a jewelry product to the cart",        parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: "gold-bracelet-set | pearl-drop-earrings | sapphire-statement-ring | diamond-solitaire-pendant | rose-gold-chain-necklace | emerald-stud-earrings | vintage-gold-brooch | sterling-silver-cuff" }, name: { type: "STRING" } }, required: ["slug","name"] } },
-  { name: "open_cart",       description: "Open the shopping cart",                   parameters: { type: "OBJECT", properties: {} } },
-  { name: "filter_products", description: "Filter shop by jewelry category",           parameters: { type: "OBJECT", properties: { category: { type: "STRING", description: "Rings | Necklaces | Earrings | Bracelets | Pendants | Brooches" } }, required: ["category"] } },
-  { name: "start_tour",      description: "Start Aria's guided store tour",            parameters: { type: "OBJECT", properties: {} } },
+  { name: "navigate",                  description: "Navigate to a page in the store",                                      parameters: { type: "OBJECT", properties: { url:      { type: "STRING", description: "/products, /collections, /about, /products?category=Rings" } }, required: ["url"] } },
+  { name: "scroll_page",               description: "Scroll the page up, down, top, or bottom",                             parameters: { type: "OBJECT", properties: { direction: { type: "STRING", description: "up | down | top | bottom" }, amount: { type: "NUMBER" } }, required: ["direction"] } },
+  { name: "add_to_cart",               description: "Add a jewelry product to the cart",                                    parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: "gold-bracelet-set | pearl-drop-earrings | sapphire-statement-ring | diamond-solitaire-pendant | rose-gold-chain-necklace | emerald-stud-earrings | vintage-gold-brooch | sterling-silver-cuff" }, name: { type: "STRING" } }, required: ["slug","name"] } },
+  { name: "open_cart",                 description: "Open the shopping cart",                                               parameters: { type: "OBJECT", properties: {} } },
+  { name: "filter_products",           description: "Filter shop by jewelry category",                                      parameters: { type: "OBJECT", properties: { category: { type: "STRING", description: "Rings | Necklaces | Earrings | Bracelets | Pendants | Brooches" } }, required: ["category"] } },
+  { name: "start_tour",                description: "Start Aria's guided store tour",                                       parameters: { type: "OBJECT", properties: {} } },
+  { name: "read_cart",                 description: "Read the current cart contents aloud — items, quantities, and total",  parameters: { type: "OBJECT", properties: {} } },
+  { name: "check_stock",               description: "Check if a specific product is in stock",                              parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: "gold-bracelet-set | pearl-drop-earrings | sapphire-statement-ring | diamond-solitaire-pendant | rose-gold-chain-necklace | emerald-stud-earrings | vintage-gold-brooch | sterling-silver-cuff" } }, required: ["slug"] } },
+  { name: "filter_by_price",           description: "Filter shop products by maximum price — use for 'show me items under $X'", parameters: { type: "OBJECT", properties: { maxPrice: { type: "NUMBER", description: "Maximum price in USD e.g. 100" } }, required: ["maxPrice"] } },
+  { name: "describe_current_product",  description: "Describe the product currently shown on the page — name, price, materials, story", parameters: { type: "OBJECT", properties: {} } },
 ]
 
 const SYSTEM_PROMPT = `You are Aria, an elegant and warm voice shopping assistant for a luxury handcrafted jewelry store.
@@ -49,7 +53,11 @@ STRICT SILENCE RULES — follow exactly:
 - add_to_cart: one warm confirmation sentence only. e.g. "Done — I've added that to your cart."
 - open_cart: one warm sentence. e.g. "Here's your cart."
 - filter_products: one warm sentence. e.g. "Showing you the rings collection."
+- filter_by_price: one sentence. e.g. "Here are pieces under $80."
 - start_tour: one welcoming sentence to begin, then stop speaking. The tour cards handle the narration.
+- read_cart: speak the result naturally — list items and total warmly.
+- check_stock: speak the result naturally in one sentence.
+- describe_current_product: describe the piece warmly in 2-3 sentences. Include price and stock status.
 
 When first connected, greet the user warmly in 1-2 sentences and offer to help or start the tour.`
 
@@ -136,22 +144,59 @@ async function handleMessage(event: MessageEvent) {
   if (data.toolCall) {
     const calls = ((data.toolCall as Record<string,unknown>).functionCalls ?? []) as Array<{id:string;name:string;args:Record<string,unknown>}>
     for (const call of calls) {
-      executeCommand(call.name, call.args ?? {})
-      _ws?.send(JSON.stringify({ tool_response: { function_responses: [{ id: call.id, name: call.name, response: { result: "success" } }] } }))
+      const result = await executeCommand(call.name, call.args ?? {})
+      _ws?.send(JSON.stringify({
+        tool_response: {
+          function_responses: [{ id: call.id, name: call.name, response: { result: result ?? "success" } }]
+        }
+      }))
     }
   }
 }
 
-// ── Execute function calls ─────────────────────────────────────────────────
-function executeCommand(name: string, args: Record<string, unknown>) {
+// ── Execute function calls (async — data-returning functions feed result back to Gemini) ──
+async function executeCommand(name: string, args: Record<string, unknown>): Promise<string | undefined> {
   const { dispatchCommand } = aria()
   switch (name) {
-    case "navigate":        dispatchCommand({ type: "NAVIGATE",    url: args.url as string }); break
-    case "scroll_page":     dispatchCommand({ type: "SCROLL",      direction: args.direction as "up"|"down"|"top"|"bottom", amount: (args.amount as number) ?? 400 }); break
-    case "add_to_cart":     dispatchCommand({ type: "ADD_TO_CART", slug: args.slug as string, name: args.name as string }); break
-    case "open_cart":       dispatchCommand({ type: "OPEN_CART" }); break
-    case "filter_products": dispatchCommand({ type: "FILTER",      category: args.category as string }); break
-    case "start_tour":      dispatchCommand({ type: "START_TOUR" }); break
+    case "navigate":        dispatchCommand({ type: "NAVIGATE",    url: args.url as string }); return undefined
+    case "scroll_page":     dispatchCommand({ type: "SCROLL",      direction: args.direction as "up"|"down"|"top"|"bottom", amount: (args.amount as number) ?? 400 }); return undefined
+    case "add_to_cart":     dispatchCommand({ type: "ADD_TO_CART", slug: args.slug as string, name: args.name as string }); return undefined
+    case "open_cart":       dispatchCommand({ type: "OPEN_CART" }); return undefined
+    case "filter_products": dispatchCommand({ type: "FILTER",      category: args.category as string }); return undefined
+    case "start_tour":      dispatchCommand({ type: "START_TOUR" }); return undefined
+
+    case "filter_by_price":
+      dispatchCommand({ type: "NAVIGATE", url: `/products?maxPrice=${args.maxPrice}` })
+      return undefined
+
+    case "read_cart": {
+      const cartMod = await import("@/store/cart")
+      const { items, totalPrice } = cartMod.useCart.getState()
+      if (items.length === 0) return "The cart is empty."
+      const list = items.map((i) => `${i.quantity}× ${i.name} at $${i.price.toFixed(2)}`).join(", ")
+      return `Cart contains: ${list}. Total: $${totalPrice().toFixed(2)}.`
+    }
+
+    case "check_stock": {
+      const res = await fetch(`/api/product/${args.slug as string}`)
+      const p = await res.json()
+      if (!p?.id) return "I couldn't find that product."
+      if (!p.inStock) return `${p.name} is currently out of stock.`
+      if (p.stockCount !== null && p.stockCount <= 5) return `${p.name} is in stock — only ${p.stockCount} remaining.`
+      return `${p.name} is in stock.`
+    }
+
+    case "describe_current_product": {
+      const slug = document.body.dataset.productSlug
+      if (!slug) return "I can't see a product on this page — navigate to a product first."
+      const res = await fetch(`/api/product/${slug}`)
+      const p = await res.json()
+      if (!p?.id) return "I couldn't load the product details."
+      const stock = !p.inStock ? "currently out of stock" : (p.stockCount !== null && p.stockCount <= 5) ? `only ${p.stockCount} left` : "in stock"
+      return `${p.name} — ${p.description ?? "a handcrafted piece"}. Priced at $${p.price.toFixed(2)}, ${stock}.`
+    }
+
+    default: return undefined
   }
 }
 
