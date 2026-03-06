@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { prisma } from "@/lib/db"
 
+export const dynamic = "force-dynamic"
 export const metadata: Metadata = { title: "Admin" }
 
 export default async function AdminPage() {

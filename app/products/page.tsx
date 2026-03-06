@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Suspense } from "react"
 import { prisma } from "@/lib/db"
+
+export const dynamic = "force-dynamic"
 import { ProductCard } from "@/components/product/ProductCard"
 import { SearchInput } from "@/components/products/SearchInput"
 
