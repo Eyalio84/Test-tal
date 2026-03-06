@@ -1,7 +1,9 @@
 "use client"
 
+import { useEffect } from "react"
 import toast from "react-hot-toast"
 import { useCart } from "@/store/cart"
+import { useRecentlyViewed } from "@/store/recentlyViewed"
 
 interface ProductActionsProps {
   id: string
@@ -17,7 +19,22 @@ interface ProductActionsProps {
 export function ProductActions({
   id, name, price, image, slug, inStock, stockCount, whatsappNumber,
 }: ProductActionsProps) {
-  const addItem = useCart((s) => s.addItem)
+  const addItem  = useCart((s) => s.addItem)
+  const addRecent = useRecentlyViewed((s) => s.add)
+
+  useEffect(() => {
+    // Track recently viewed
+    addRecent({ id, name, slug, price, image, category: null })
+    // Inject product context for Aria voice narration (Task 8)
+    document.body.dataset.productSlug  = slug
+    document.body.dataset.productName  = name
+    document.body.dataset.productPrice = String(price)
+    return () => {
+      delete document.body.dataset.productSlug
+      delete document.body.dataset.productName
+      delete document.body.dataset.productPrice
+    }
+  }, [slug]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleAddToCart() {
     addItem({ id, name, price, image, slug })

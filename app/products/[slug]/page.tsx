@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db"
 import { ProductGallery } from "@/components/product/ProductGallery"
 import { ProductActions } from "@/components/product/ProductActions"
 import { RelatedProducts } from "@/components/product/RelatedProducts"
+import { RecentlyViewed } from "@/components/product/RecentlyViewed"
 import { JsonLd } from "@/components/product/JsonLd"
 
 interface Props {
@@ -129,6 +130,7 @@ export default async function ProductDetailPage({ params }: Props) {
         </div>
 
         <RelatedProducts category={product.category} excludeSlug={slug} />
+        <RecentlyViewed currentSlug={slug} />
       </div>
     </div>
   )
