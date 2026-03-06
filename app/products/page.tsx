@@ -78,6 +78,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                 images={product.images}
                 category={product.category}
                 inStock={product.inStock}
+                stockCount={product.stockCount}
               />
             ))}
           </div>

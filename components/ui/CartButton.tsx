@@ -9,8 +9,8 @@ export function CartButton() {
   return (
     <button
       onClick={openCart}
+      aria-label={count > 0 ? `Open cart, ${count} item${count !== 1 ? "s" : ""}` : "Open cart"}
       className="relative p-1 text-ink/70 hover:text-ink transition"
-      aria-label="Open cart"
     >
       {/* Shopping bag icon */}
       <svg

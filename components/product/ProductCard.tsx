@@ -13,9 +13,10 @@ interface ProductCardProps {
   images: string
   category?: string | null
   inStock: boolean
+  stockCount?: number | null
 }
 
-export function ProductCard({ id, name, slug, price, images, category, inStock }: ProductCardProps) {
+export function ProductCard({ id, name, slug, price, images, category, inStock, stockCount }: ProductCardProps) {
   const addItem = useCart((s) => s.addItem)
 
   const imageUrl = (() => {
@@ -54,6 +55,12 @@ export function ProductCard({ id, name, slug, price, images, category, inStock }
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
             <span className="text-xs tracking-widest uppercase text-ink/60">Out of Stock</span>
           </div>
+        )}
+
+        {stockCount !== null && stockCount !== undefined && stockCount <= 5 && inStock && (
+          <span className="absolute bottom-3 left-3 bg-amber-50 text-amber-700 px-2 py-1 text-xs">
+            Only {stockCount} left
+          </span>
         )}
 
         {category && (

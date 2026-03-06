@@ -13,6 +13,10 @@
 }
 
 @layer base {
+  html, body {
+    overflow-x: hidden;
+  }
+
   body {
     background-color: var(--color-stone-50);
     color: var(--color-ink);
@@ -22,5 +26,21 @@
 
   h1, h2, h3 {
     font-family: var(--font-serif);
+  }
+
+  /* Keyboard focus ring: visible for keyboard nav only, not mouse clicks */
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Respect user motion preferences (WCAG 2.3.3) */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
