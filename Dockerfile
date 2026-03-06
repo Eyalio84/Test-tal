@@ -8,6 +8,8 @@ RUN npm ci
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+RUN apk add --no-cache openssl
+
 # Copy deps
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -25,6 +27,8 @@ RUN npm run build
 # ── Stage 3: runner ────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
 WORKDIR /app
+
+RUN apk add --no-cache openssl
 
 ENV NODE_ENV=production
 
