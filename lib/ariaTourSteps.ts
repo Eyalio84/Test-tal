@@ -8,7 +8,7 @@ export const STORE_TOUR: TourStep[] = [
     position:    "bottom",
   },
   {
-    selector:    "[aria-label='Open cart']",
+    selector:    "[aria-label^='Open cart']",
     title:       "Your Cart",
     description: "Your cart lives here. Just say the name of any piece and I'll add it for you.",
     position:    "bottom",

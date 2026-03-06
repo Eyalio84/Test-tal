@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useAria } from "@/store/aria"
+import { STORE_TOUR } from "@/lib/ariaTourSteps"
 import { useA11y } from "@/store/a11y"
 import { useAriaLive } from "@/hooks/useAriaLive"
 
@@ -35,6 +36,13 @@ const SparkleIcon = () => (
 const CloseIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-5 h-5">
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+)
+const TourIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+    <path d="M4 4h16v2H4V4zm0 4h10v2H4V8zm0 4h16v2H4v-2zm0 4h10v2H4v-2z" opacity=".5"/>
+    <circle cx="19" cy="16" r="3" fill="currentColor" />
+    <path d="M19 14v4M17 16h4" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 )
 
@@ -162,7 +170,7 @@ function MainOrb({
 
 // ── FloatingDock ───────────────────────────────────────────────────────────
 export function FloatingDock() {
-  const { ariaState, isConnected, isOpen, setOpen } = useAria()
+  const { ariaState, isConnected, isOpen, setOpen, startTour } = useAria()
   const { openPanel } = useA11y()
   const { connect, disconnect } = useAriaLive()
   const [mounted, setMounted] = useState(false)
@@ -178,6 +186,12 @@ export function FloatingDock() {
   }
 
   const actions = [
+    {
+      icon:    <span className="text-white"><TourIcon /></span>,
+      label:   "Start Tour",
+      onClick: () => { startTour(STORE_TOUR); setOpen(false) },
+      accent:  "linear-gradient(135deg, #c9a96e, #8b6914)",
+    },
     {
       icon:    <span className="text-white"><A11yIcon /></span>,
       label:   "Accessibility",

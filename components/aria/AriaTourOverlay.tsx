@@ -9,8 +9,7 @@ function useSpotlight(selector: string) {
   useEffect(() => {
     function measure() {
       const el = document.querySelector(selector)
-      if (el) setRect(el.getBoundingClientRect())
-      else setRect(null)
+      setRect(el ? el.getBoundingClientRect() : null)
     }
     measure()
     window.addEventListener("resize", measure)
@@ -27,29 +26,39 @@ function TourCard({ step, index, total, onNext, onEnd }: {
   step: TourStep; index: number; total: number; onNext: () => void; onEnd: () => void
 }) {
   const rect = useSpotlight(step.selector)
-  const PAD  = 14
+  const [vh, setVh] = useState(0)
 
-  if (!rect) return null
+  useEffect(() => {
+    setVh(window.innerHeight)
+    const onResize = () => setVh(window.innerHeight)
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
+  }, [])
 
-  const cardBelow = rect.top < window.innerHeight / 2
-  const rawTop    = cardBelow ? rect.bottom + PAD + 8 : rect.top - PAD - 220
-  const cardTop   = Math.min(Math.max(rawTop, 72), window.innerHeight - 240)
+  // Wait until vh is known; fallback spotlight when element not found
+  if (vh === 0) return null
+  const PAD = 14
+  const spotlight = rect ?? new DOMRect(window.innerWidth / 2 - 80, vh / 2 - 50, 160, 100)
+
+  const cardBelow = spotlight.top < vh * 0.55
+  const rawTop    = cardBelow ? spotlight.bottom + PAD + 8 : spotlight.top - PAD - 230
+  const cardTop   = Math.min(Math.max(rawTop, 72), vh - 250)
 
   return (
     <>
       {/* Overlay with spotlight hole */}
-      <svg className="fixed inset-0 z-[60] pointer-events-none" width="100%" height="100%" style={{ position:"fixed", top:0, left:0 }}>
+      <svg className="fixed inset-0 z-[60] pointer-events-none" width="100%" height={vh} style={{ position:"fixed", top:0, left:0 }}>
         <defs>
           <mask id="aria-tour-mask">
             <rect width="100%" height="100%" fill="white" />
-            <rect x={rect.left-PAD} y={rect.top-PAD} width={rect.width+PAD*2} height={rect.height+PAD*2} rx="16" fill="black" />
+            <rect x={spotlight.left-PAD} y={spotlight.top-PAD} width={spotlight.width+PAD*2} height={spotlight.height+PAD*2} rx="16" fill="black" />
           </mask>
         </defs>
         <rect width="100%" height="100%" fill="rgba(0,0,0,0.75)" mask="url(#aria-tour-mask)" />
         {/* Gold glow border on spotlight */}
         <rect
-          x={rect.left-PAD} y={rect.top-PAD}
-          width={rect.width+PAD*2} height={rect.height+PAD*2}
+          x={spotlight.left-PAD} y={spotlight.top-PAD}
+          width={spotlight.width+PAD*2} height={spotlight.height+PAD*2}
           rx="16" fill="none" stroke="#c9a96e" strokeWidth="2.5"
         />
       </svg>
@@ -101,7 +110,6 @@ export function AriaTourOverlay() {
 
   if (!isTourActive) return null
 
-  // Use passed steps or fall back to default store tour
   const steps = tourSteps.length > 0 ? tourSteps : STORE_TOUR
   const step  = steps[tourStep]
 
