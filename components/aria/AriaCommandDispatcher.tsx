@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useAria } from "@/store/aria"
 import { useCart } from "@/store/cart"
 import toast from "react-hot-toast"
+import { STORE_TOUR } from "@/lib/ariaTourSteps"
 
 // Invisible component — lives in layout, executes Aria's commands
 export function AriaCommandDispatcher() {
@@ -58,8 +59,7 @@ export function AriaCommandDispatcher() {
         break
 
       case "START_TOUR":
-        // Tour is handled by AriaCommandDispatcher via store — components read isTourActive
-        useAria.getState().startTour([])  // tour steps are page-specific, set by AriaGuide
+        useAria.getState().startTour(STORE_TOUR)
         break
 
       case "END_TOUR":

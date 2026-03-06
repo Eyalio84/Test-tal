@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { FloatingDock } from "@/components/ui/FloatingDock"
 import { AriaCommandDispatcher } from "@/components/aria/AriaCommandDispatcher"
+import { AriaTourOverlay } from "@/components/aria/AriaTourOverlay"
 import { SkipLink } from "@/components/ui/SkipLink"
 import { LiveRegion } from "@/components/ui/LiveRegion"
 import { AccessibilityPanel } from "@/components/ui/AccessibilityPanel"
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
           <FloatingDock />
           <AriaCommandDispatcher />
+          <AriaTourOverlay />
           <LiveRegion />
           <AccessibilityPanel />
         </Providers>
