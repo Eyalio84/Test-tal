@@ -3,7 +3,8 @@ import { Playfair_Display, Inter, Lexend } from "next/font/google"
 import { Providers } from "@/components/layout/Providers"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
-import { WhatsAppButton } from "@/components/ui/WhatsAppButton"
+import { FloatingDock } from "@/components/ui/FloatingDock"
+import { AriaCommandDispatcher } from "@/components/aria/AriaCommandDispatcher"
 import { SkipLink } from "@/components/ui/SkipLink"
 import { LiveRegion } from "@/components/ui/LiveRegion"
 import { AccessibilityPanel } from "@/components/ui/AccessibilityPanel"
@@ -27,7 +28,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Navbar />
           <main id="main-content">{children}</main>
           <Footer />
-          <WhatsAppButton />
+          <FloatingDock />
+          <AriaCommandDispatcher />
           <LiveRegion />
           <AccessibilityPanel />
         </Providers>

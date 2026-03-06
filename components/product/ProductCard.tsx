@@ -16,6 +16,27 @@ interface ProductCardProps {
   stockCount?: number | null
 }
 
+// Derive the voice trigger phrase from the slug (all words except last = category)
+// e.g. "gold-bracelet-set" → "Gold Bracelet"
+function getVoiceTrigger(slug: string): string {
+  const words = slug.split("-").slice(0, -1)
+  return words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+}
+
+// Renders the product name with the trigger phrase bolded
+function VoiceName({ name, slug }: { name: string; slug: string }) {
+  const trigger = getVoiceTrigger(slug)
+  const idx = name.toLowerCase().indexOf(trigger.toLowerCase())
+  if (idx === -1) return <h3 className="font-serif text-ink text-base leading-tight">{name}</h3>
+
+  return (
+    <h3 className="font-serif text-ink text-base leading-tight" title={`Say: "${trigger}"`}>
+      <strong className="font-bold">{name.slice(0, idx + trigger.length)}</strong>
+      {name.slice(idx + trigger.length)}
+    </h3>
+  )
+}
+
 export function ProductCard({ id, name, slug, price, images, category, inStock, stockCount }: ProductCardProps) {
   const addItem = useCart((s) => s.addItem)
 
@@ -71,7 +92,8 @@ export function ProductCard({ id, name, slug, price, images, category, inStock, 
       </div>
 
       <div className="pt-3 pb-1">
-        <h3 className="font-serif text-ink text-base leading-tight">{name}</h3>
+        <VoiceName name={name} slug={slug} />
+
         <div className="flex items-center justify-between mt-2">
           <span className="text-sm text-ink/70">${price.toFixed(2)}</span>
           <button

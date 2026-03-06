@@ -46,22 +46,7 @@ export function AccessibilityPanel() {
     <>
       <A11yApplier />
 
-      {/* Floating trigger button — bottom-left */}
-      <button
-        onClick={() => (isOpen ? closePanel() : openPanel())}
-        aria-label="Accessibility settings"
-        aria-expanded={isOpen}
-        aria-controls="a11y-panel"
-        className="fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition hover:scale-105"
-        style={{ backgroundColor: "var(--color-gold)", color: "#fff" }}
-      >
-        {/* Universal accessibility icon */}
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" aria-hidden="true">
-          <path d="M12 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm8 7h-5v13h-2v-6h-2v6H9V9H4V7h16v2z" />
-        </svg>
-      </button>
-
-      {/* Panel */}
+      {/* Panel — triggered from FloatingDock */}
       {isOpen && (
         <div
           id="a11y-panel"
