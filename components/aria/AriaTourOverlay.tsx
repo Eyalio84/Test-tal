@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useAria, type TourStep } from "@/store/aria"
 import { STORE_TOUR } from "@/lib/ariaTourSteps"
+import { ariaConnect, sendTextToAria } from "@/hooks/useAriaLive"
 
 function useSpotlight(selector: string) {
   const [rect, setRect] = useState<DOMRect | null>(null)
@@ -35,7 +36,6 @@ function TourCard({ step, index, total, onNext, onEnd }: {
     return () => window.removeEventListener("resize", onResize)
   }, [])
 
-  // Wait until vh is known; fallback spotlight when element not found
   if (vh === 0) return null
   const PAD = 14
   const spotlight = rect ?? new DOMRect(window.innerWidth / 2 - 80, vh / 2 - 50, 160, 100)
@@ -55,7 +55,6 @@ function TourCard({ step, index, total, onNext, onEnd }: {
           </mask>
         </defs>
         <rect width="100%" height="100%" fill="rgba(0,0,0,0.75)" mask="url(#aria-tour-mask)" />
-        {/* Gold glow border on spotlight */}
         <rect
           x={spotlight.left-PAD} y={spotlight.top-PAD}
           width={spotlight.width+PAD*2} height={spotlight.height+PAD*2}
@@ -66,7 +65,6 @@ function TourCard({ step, index, total, onNext, onEnd }: {
       {/* Info card */}
       <div className="fixed z-[62] left-4 right-4 pointer-events-auto" style={{ top: cardTop }}>
         <div className="rounded-2xl overflow-hidden shadow-2xl" style={{ background:"rgba(10,10,10,0.93)", backdropFilter:"blur(16px)", border:"1px solid rgba(201,169,110,0.3)" }}>
-          {/* Progress bar */}
           <div className="h-0.5 bg-white/10">
             <div className="h-full transition-all duration-500" style={{ width:`${((index+1)/total)*100}%`, background:"#c9a96e" }} />
           </div>
@@ -106,13 +104,41 @@ function TourCard({ step, index, total, onNext, onEnd }: {
 }
 
 export function AriaTourOverlay() {
-  const { isTourActive, tourStep, tourSteps, nextTourStep, endTour } = useAria()
-
-  if (!isTourActive) return null
+  const { isTourActive, tourStep, tourSteps, isConnected, nextTourStep, endTour } = useAria()
+  const narrationSentRef = useRef<number>(-1)
 
   const steps = tourSteps.length > 0 ? tourSteps : STORE_TOUR
   const step  = steps[tourStep]
 
+  // Auto-connect Aria when tour starts
+  useEffect(() => {
+    if (isTourActive && !isConnected) {
+      ariaConnect()
+    }
+  }, [isTourActive, isConnected])
+
+  // Narrate each step once — wait for connection if needed
+  useEffect(() => {
+    if (!isTourActive || !step?.narration) return
+    if (narrationSentRef.current === tourStep) return
+
+    if (!isConnected) return  // will re-run when isConnected flips true
+
+    // Small delay so Aria isn't still saying the greeting when step 0 fires
+    const delay = tourStep === 0 ? 1800 : 400
+    const timer = setTimeout(() => {
+      sendTextToAria(step.narration!)
+      narrationSentRef.current = tourStep
+    }, delay)
+    return () => clearTimeout(timer)
+  }, [isTourActive, isConnected, tourStep, step])
+
+  // Reset tracker when tour ends
+  useEffect(() => {
+    if (!isTourActive) narrationSentRef.current = -1
+  }, [isTourActive])
+
+  if (!isTourActive) return null
   if (!step) { endTour(); return null }
 
   return (

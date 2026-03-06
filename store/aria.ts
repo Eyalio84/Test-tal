@@ -18,6 +18,7 @@ export interface TourStep {
   title: string
   description: string
   position: "top" | "bottom" | "left" | "right"
+  narration?: string        // Text Aria speaks aloud when this step is shown
 }
 
 interface AriaStore {
