@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { NewsletterCapture } from "@/components/ui/NewsletterCapture"
 
 export function Footer() {
   return (
@@ -6,16 +7,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="md:col-span-2">
           <p className="font-serif text-white text-xl mb-4">STORE</p>
-          <div className="flex gap-3 min-w-0">
-            <input
-              type="email"
-              placeholder="your@email.com"
-              className="bg-white/10 border border-white/20 px-4 py-2 text-sm text-white placeholder:text-white/30 flex-1 min-w-0 focus:outline-none"
-            />
-            <button className="bg-white text-ink px-4 py-2 text-xs tracking-widest uppercase hover:bg-gold hover:text-white transition flex-shrink-0 whitespace-nowrap">
-              Subscribe
-            </button>
-          </div>
+          <NewsletterCapture />
 
           {/* Social icons */}
           <div className="flex items-center gap-4 mt-6">
