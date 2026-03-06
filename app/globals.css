@@ -44,3 +44,51 @@
     }
   }
 }
+
+/* ─── Accessibility Panel overrides ─────────────────────────────────── */
+
+/* Font size */
+html.a11y-font-large  { font-size: 18px; }
+html.a11y-font-xlarge { font-size: 21px; }
+
+/* High contrast */
+html.a11y-high-contrast {
+  --color-ink:      #000000;
+  --color-stone-50: #ffffff;
+  --color-gold:     #b8860b;
+}
+html.a11y-high-contrast body { background: #fff; }
+html.a11y-high-contrast * { border-color: #000 !important; }
+html.a11y-high-contrast img { filter: contrast(1.2); }
+
+/* Dyslexia-friendly font (Lexend via next/font) */
+html.a11y-dyslexia body,
+html.a11y-dyslexia h1,
+html.a11y-dyslexia h2,
+html.a11y-dyslexia h3 {
+  font-family: var(--font-lexend), system-ui, sans-serif !important;
+  letter-spacing: 0.05em;
+  word-spacing:   0.1em;
+}
+
+/* Manual reduce motion toggle (complements prefers-reduced-motion) */
+html.a11y-reduce-motion *,
+html.a11y-reduce-motion *::before,
+html.a11y-reduce-motion *::after {
+  animation-duration:       0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration:      0.01ms !important;
+}
+
+/* Line spacing */
+html.a11y-spacing-relaxed { line-height: 1.8; }
+html.a11y-spacing-relaxed p,
+html.a11y-spacing-relaxed li { letter-spacing: 0.04em; }
+
+html.a11y-spacing-loose { line-height: 2.2; }
+html.a11y-spacing-loose p,
+html.a11y-spacing-loose li { letter-spacing: 0.08em; }
+
+/* Color / saturation */
+html.a11y-grayscale      { filter: grayscale(100%); }
+html.a11y-high-saturation { filter: saturate(200%); }

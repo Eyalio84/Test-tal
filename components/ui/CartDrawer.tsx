@@ -1,12 +1,35 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import toast from "react-hot-toast"
 import { useCart } from "@/store/cart"
 
 export function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, updateQuantity, totalPrice } = useCart()
+  const { items, isOpen, closeCart, removeItem, updateQuantity, totalPrice, giftNote } = useCart()
+  const [checkingOut, setCheckingOut] = useState(false)
+
+  async function handleCheckout() {
+    setCheckingOut(true)
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items, giftNote }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        toast.error(data.error ?? "Checkout unavailable.")
+      }
+    } catch {
+      toast.error("Network error. Please try again.")
+    } finally {
+      setCheckingOut(false)
+    }
+  }
   const drawerRef = useRef<HTMLDivElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -126,11 +149,11 @@ export function CartDrawer() {
               <span className="font-medium text-ink">${totalPrice().toFixed(2)}</span>
             </div>
             <button
-              disabled
-              aria-disabled="true"
-              className="w-full bg-ink text-white py-3 text-xs tracking-widest uppercase opacity-50 cursor-not-allowed"
+              onClick={handleCheckout}
+              disabled={checkingOut}
+              className="w-full bg-ink text-white py-3 text-xs tracking-widest uppercase hover:bg-ink/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Checkout — Coming Soon
+              {checkingOut ? "Redirecting..." : "Checkout"}
             </button>
           </div>
         )}

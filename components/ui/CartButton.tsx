@@ -1,10 +1,16 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { useCart } from "@/store/cart"
 
 export function CartButton() {
   const { openCart, totalItems } = useCart()
-  const count = totalItems()
+  // Defer badge rendering until after client hydration to prevent SSR mismatch.
+  // Zustand persist rehydrates from localStorage only on the client, so server
+  // and initial client renders must both show count=0.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const count = mounted ? totalItems() : 0
 
   return (
     <button

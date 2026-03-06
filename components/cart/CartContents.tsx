@@ -1,11 +1,35 @@
 "use client"
 
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import toast from "react-hot-toast"
 import { useCart } from "@/store/cart"
 
 export function CartContents() {
-  const { items, removeItem, updateQuantity, totalPrice, giftNote, setGiftNote } = useCart()
+  const { items, removeItem, updateQuantity, totalPrice, giftNote, setGiftNote, clearCart } = useCart()
+  const [checkingOut, setCheckingOut] = useState(false)
+
+  async function handleCheckout() {
+    setCheckingOut(true)
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items, giftNote }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        toast.error(data.error ?? "Checkout unavailable. Please try again.")
+      }
+    } catch {
+      toast.error("Network error. Please try again.")
+    } finally {
+      setCheckingOut(false)
+    }
+  }
 
   if (items.length === 0) {
     return (
@@ -110,16 +134,12 @@ export function CartContents() {
             <span className="text-ink">${totalPrice().toFixed(2)}</span>
           </div>
           <button
-            disabled
-            aria-disabled="true"
-            aria-describedby="checkout-note"
-            className="w-full bg-ink text-white py-3 text-xs tracking-widest uppercase opacity-50 cursor-not-allowed"
+            onClick={handleCheckout}
+            disabled={checkingOut}
+            className="w-full bg-ink text-white py-3 text-xs tracking-widest uppercase hover:bg-ink/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Proceed to Checkout
+            {checkingOut ? "Redirecting..." : "Proceed to Checkout"}
           </button>
-          <p id="checkout-note" className="text-center text-xs text-ink/30 mt-3">
-            Stripe integration coming in Day 4
-          </p>
         </div>
       </div>
     </div>
