@@ -59,6 +59,8 @@ model Product {
   stripePriceId String?
   createdAt     DateTime    @default(now())
   stockCount    Int?
+  siteId        String?
+  site          Site?   @relation(fields: [siteId], references: [id], onDelete: SetNull)
   OrderItem     OrderItem[]
 }
 
@@ -72,6 +74,8 @@ model Session {
 
 model SiteContent {
   id           String   @id
+  siteId       String?
+  site         Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
   draft        String   @default("")
   live         String   @default("")
   lastEditedBy String?
@@ -80,8 +84,25 @@ model SiteContent {
 
 model SiteSnapshot {
   id          String   @id @default(cuid())
+  siteId      String?
+  site        Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
   contentJson String
   createdAt   DateTime @default(now())
+}
+
+model Site {
+  id        String   @id @default(cuid())
+  name      String   @default("My Site")
+  themeId   String   @default("jewelry")
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  plan      String   @default("starter")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  content   SiteContent[]
+  snapshots SiteSnapshot[]
+  products  Product[]
 }
 
 model User {
@@ -98,6 +119,7 @@ model User {
   Order             Order[]
   Session           Session[]
   ariaMemories      AriaMemory[]
+  sites             Site[]
 }
 
 model AriaMemory {
