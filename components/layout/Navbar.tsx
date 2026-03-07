@@ -184,7 +184,7 @@ export function Navbar() {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => signOut()}
+              onClick={() => signOut({ callbackUrl: "/" })}
               className="text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition hidden md:inline"
             >
               Sign out
@@ -216,7 +216,7 @@ export function Navbar() {
             <Link href="/dashboard/site" onClick={() => setMobileOpen(false)} className="text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition">My Site</Link>
             <Link href="/admin/editor" onClick={() => setMobileOpen(false)} className="text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition">Editor</Link>
             <button
-              onClick={() => { signOut(); setMobileOpen(false) }}
+              onClick={() => { signOut({ callbackUrl: "/" }); setMobileOpen(false) }}
               className="text-left text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition"
             >
               Sign out
