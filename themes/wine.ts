@@ -46,4 +46,17 @@ export const wineTheme: ThemeConfig = {
     { name: "Rosé de Provence",           slug: "rose-provence",              description: "Classic pale Provençal rosé. Delicate, dry, and endlessly drinkable.",         price: 32.00, category: "White",     image: "https://images.unsplash.com/photo-1474722883778-792e7990302f?w=800&q=80", stockCount: 22 },
     { name: "Botanical Gin",              slug: "gin-botanical",              description: "Small-batch gin with 11 botanicals including lavender and cardamom.",           price: 55.00, category: "Spirits",   image: "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=800&q=80", stockCount: 14 },
   ],
+  about: {
+    story: "The Cellar was founded by a sommelier who grew tired of wine being made intimidating. Our philosophy is simple: the best bottle is the one you actually enjoy drinking. We travel to small estates that don't advertise, taste everything ourselves, and bring back only what we'd serve at our own table. No fluff. Just wine worth opening.",
+    values: [
+      { title: "Small producers",    desc: "We work with estates under 10,000 cases per year. The good stuff is never mass-produced." },
+      { title: "Honest curation",    desc: "We taste every bottle before listing it. Our recommendation is our reputation." },
+      { title: "Education always",   desc: "You'll never feel judged for asking what pairs with pizza. That's why we're here." },
+    ],
+    team: [
+      { name: "Victor Moreau",  role: "Founder & Head Sommelier",  image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80" },
+      { name: "Laila Hassan",   role: "Buyer, Europe & Americas",  image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&q=80" },
+      { name: "Ben Nakamura",   role: "Customer Wine Advisor",     image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80" },
+    ],
+  },
 }

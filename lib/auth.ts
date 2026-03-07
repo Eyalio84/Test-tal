@@ -7,7 +7,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
   callbacks: {
-    // NOTE: do NOT spread authConfig.callbacks here — `authorized` is edge-only (proxy.ts)
+    // NOTE: do NOT spread authConfig.callbacks here — `authorized` is unused (no edge middleware)
     async session({ session, user }) {
       session.user.id = user.id
       const dbUser = await prisma.user.findUnique({

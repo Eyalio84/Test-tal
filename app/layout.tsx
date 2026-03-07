@@ -11,7 +11,7 @@ import { LiveRegion }          from "@/components/ui/LiveRegion"
 import { AccessibilityPanel }  from "@/components/ui/AccessibilityPanel"
 import { ShippingBanner }      from "@/components/ui/ShippingBanner"
 import { ThemeApplier }        from "@/components/layout/ThemeApplier"
-import { activeTheme }         from "@/lib/theme"
+import { getActiveTheme }      from "@/lib/getActiveTheme"
 import "./globals.css"
 
 // All theme fonts loaded once — CSS variable determines which is active
@@ -22,9 +22,13 @@ const fredoka    = Fredoka({ subsets: ["latin"], variable: "--font-fredoka" })
 const lora       = Lora({ subsets: ["latin"], variable: "--font-lora" })
 const cormorant  = Cormorant_Garamond({ subsets: ["latin"], variable: "--font-cormorant", weight: ["400","500","600"] })
 
-export const metadata: Metadata = {
-  title:       { template: `%s | ${activeTheme.brand.name}`, default: activeTheme.meta.title },
-  description: activeTheme.meta.description,
+// generateMetadata reads the active theme from DB so switching themes updates <title> without rebuild
+export async function generateMetadata(): Promise<Metadata> {
+  const theme = await getActiveTheme()
+  return {
+    title:       { template: `%s | ${theme.brand.name}`, default: theme.meta.title },
+    description: theme.meta.description,
+  }
 }
 
 const fontVars = [
@@ -36,14 +40,15 @@ const fontVars = [
   cormorant.variable,
 ].join(" ")
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = await getActiveTheme()
   return (
     <html lang="en" className={fontVars}>
       <head>
         <ThemeApplier />
       </head>
       <body>
-        <Providers>
+        <Providers activeThemeId={theme.id}>
           <ShippingBanner />
           <SkipLink />
           <Navbar />

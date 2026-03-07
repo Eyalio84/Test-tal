@@ -42,14 +42,14 @@ async function main() {
 
   console.log("Seeding site content...")
   const siteContent = [
-    { id: "hero_headline", value: theme.hero.headline },
-    { id: "hero_subline",  value: theme.hero.subline },
-    { id: "about_body",    value: `${theme.brand.name} — ${theme.brand.tagline}.` },
+    { id: "hero_headline", draft: theme.hero.headline,                              live: theme.hero.headline },
+    { id: "hero_subline",  draft: theme.hero.subline,                               live: theme.hero.subline },
+    { id: "about_body",    draft: `${theme.brand.name} — ${theme.brand.tagline}.`,  live: `${theme.brand.name} — ${theme.brand.tagline}.` },
   ]
   for (const content of siteContent) {
     await prisma.siteContent.upsert({
       where:  { id: content.id },
-      update: { value: content.value },
+      update: { draft: content.draft, live: content.live },
       create: content,
     })
     console.log(`  ✓ ${content.id}`)

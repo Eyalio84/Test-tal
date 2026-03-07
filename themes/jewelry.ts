@@ -46,4 +46,17 @@ export const jewelryTheme: ThemeConfig = {
     { name: "Vintage Gold Brooch",        slug: "vintage-gold-brooch",        description: "Art Deco inspired brooch with intricate filigree work in gold.",              price: 75,  category: "Brooches",  image: "https://images.unsplash.com/photo-1588444837495-c6d6571a1820?w=800&q=80", stockCount: 4  },
     { name: "Sterling Silver Cuff",       slug: "sterling-silver-cuff",       description: "Wide sterling silver cuff with hammered finish.",                             price: 55,  category: "Bracelets", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&q=80", stockCount: 20 },
   ],
+  about: {
+    story: "We started as a small studio in 2018 with a single belief: that jewelry should feel personal. Every piece we create begins with a story — yours. Our founders, Maya and Daniel, spent years learning the craft from master goldsmiths before opening our doors. Today we work with ethically sourced metals and gemstones, and every order is hand-finished in our studio.",
+    values: [
+      { title: "Ethical sourcing",  desc: "All metals and stones are conflict-free and traceable to their origins." },
+      { title: "Handmade always",   desc: "No mass production. Every piece is finished by hand in our studio." },
+      { title: "Made to last",      desc: "We design for heirlooms, not trends. Quality over quantity, always." },
+    ],
+    team: [
+      { name: "Maya Chen",    role: "Co-founder & Head Designer",    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80" },
+      { name: "Daniel Rowe",  role: "Co-founder & Master Goldsmith", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80" },
+      { name: "Sofia Ames",   role: "Customer Experience",           image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80" },
+    ],
+  },
 }
