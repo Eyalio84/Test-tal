@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { THEMES } from "@/lib/theme"
 import { ThemeApplierStatic } from "@/components/layout/ThemeApplierStatic"
+import { DemoAriaContext } from "@/components/demos/DemoAriaContext"
 
 export default async function DemoLayout({
   children,
@@ -16,6 +17,7 @@ export default async function DemoLayout({
 
   return (
     <>
+      <DemoAriaContext />
       <ThemeApplierStatic theme={theme} />
       {/* Demo banner strip */}
       <div className="fixed top-0 inset-x-0 z-50 h-7 bg-zinc-900 flex items-center justify-between px-6">

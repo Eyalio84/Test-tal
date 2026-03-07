@@ -52,6 +52,10 @@ interface AriaStore {
   activeThemeId:  string
   setActiveThemeId: (id: string) => void
 
+  // Aria context — controls which persona/system-prompt Aria uses
+  ariaContext: "platform" | "demo" | "member"
+  setAriaContext: (ctx: "platform" | "demo" | "member") => void
+
   // ── Editor mode ──────────────────────────────────────────────────────────
   editorMode:     boolean
   draftContent:   Record<string, string>   // optimistic local cache
@@ -103,6 +107,10 @@ export const useAria = create<AriaStore>((set, get) => ({
   // Theme
   activeThemeId: (process.env.NEXT_PUBLIC_THEME ?? "jewelry").toLowerCase(),
   setActiveThemeId: (activeThemeId) => set({ activeThemeId }),
+
+  // Aria context
+  ariaContext: "demo",
+  setAriaContext: (ariaContext) => set({ ariaContext }),
 
   // Editor initial state
   editorMode:      false,

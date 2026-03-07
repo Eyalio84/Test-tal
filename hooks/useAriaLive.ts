@@ -27,10 +27,37 @@ import { THEMES } from "@/lib/theme"
 const WS_URL      = "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent"
 const LIVE_MODEL  = "models/gemini-2.5-flash-native-audio-preview-12-2025"
 
-// Build theme-aware config at connect time so switching themes takes effect on next connect
+// Build theme-aware + context-aware config at connect time
 function buildAriaConfig(themeId: string) {
+  const ariaContext = aria().ariaContext
   const theme   = THEMES[themeId] ?? THEMES["jewelry"]
   const { aria: ariaTheme, brand } = theme
+
+  // ── Platform context: override functions + system prompt ─────────────────
+  if (ariaContext === "platform") {
+    const functions = [
+      { name: "navigate_to_demo",
+        description: "Navigate to a live demo of a specific theme",
+        parameters: { type: "OBJECT", properties: {
+          themeId: { type: "STRING", description: "jewelry | candy | bakery | flowers | wine | restaurant | portfolio | saas" }
+        }, required: ["themeId"] } },
+      { name: "navigate",
+        description: "Navigate to a page",
+        parameters: { type: "OBJECT", properties: { url: { type: "STRING", description: "/demos, /pricing, /about" } }, required: ["url"] } },
+      { name: "scroll_page",
+        description: "Scroll the page up, down, top, or bottom",
+        parameters: { type: "OBJECT", properties: { direction: { type: "STRING", description: "up | down | top | bottom" }, amount: { type: "NUMBER" } }, required: ["direction"] } },
+      { name: "explain_pricing",
+        description: "Verbally explain the StoreKit pricing tiers to the visitor",
+        parameters: { type: "OBJECT", properties: {} } },
+    ]
+    const systemPrompt = `You are Aria, the AI assistant powering a web-building platform called StoreKit.
+You help visitors discover what's possible — show them demos, explain how voice editing works,
+and guide them toward signing up. Never be salesy. Be genuinely helpful and curious.
+Available demos: jewelry, candy, bakery, flowers, wine, restaurant, portfolio, saas.
+Keep all responses under 3 sentences. Navigate silently without announcing URLs.`
+    return { voice: ariaTheme.voice, functions, systemPrompt }
+  }
 
   const functions = [
     { name: "save_memory",
@@ -62,11 +89,12 @@ function buildAriaConfig(themeId: string) {
     { name: "redo_edit",         description: "Redo the last undone edit",                                              parameters: { type: "OBJECT", properties: {} } },
   ]
 
-  const systemPrompt = `You are ${ariaTheme.name}, a voice shopping assistant for ${brand.name} — ${brand.tagline}.
+  // Member context: override opening lines, keep rest of personality
+  const personaOpening = ariaContext === "member"
+    ? `You are Aria, a voice-powered site builder. You're helping a member build their online store.\nPersonality: ${ariaTheme.personality}.`
+    : `You are ${ariaTheme.name}, a voice shopping assistant for ${brand.name} — ${brand.tagline}.\n\nIMPORTANT CONTEXT: This is a personal demo built by Eyal for his good friend Tal. You are speaking directly to Tal. Keep the tone casual, warm, and genuine — never corporate or stiff.\n\nPersonality: ${ariaTheme.personality}.`
 
-IMPORTANT CONTEXT: This is a personal demo built by Eyal for his good friend Tal. You are speaking directly to Tal. Keep the tone casual, warm, and genuine — never corporate or stiff.
-
-Personality: ${ariaTheme.personality}.
+  const systemPrompt = `${personaOpening}
 Voice style: concise (1-3 sentences), conversational, natural — never robotic.
 
 Your capabilities: navigate pages, filter products, add items to cart, read cart, check stock, describe products, scroll, give guided tour.
@@ -188,6 +216,8 @@ async function handleMessage(event: MessageEvent) {
 async function executeCommand(name: string, args: Record<string, unknown>): Promise<string | undefined> {
   const { dispatchCommand } = aria()
   switch (name) {
+    case "navigate_to_demo": dispatchCommand({ type: "NAVIGATE", url: `/demos/${args.themeId as string}` }); return undefined
+    case "explain_pricing": return "StoreKit has three tiers: Starter is free and lets you build with Aria. Builder at $29/month adds a custom domain and priority support. Pro at $79/month adds team members, analytics, and advanced AI editing. All plans include Aria voice control."
     case "navigate":        dispatchCommand({ type: "NAVIGATE",    url: args.url as string }); return undefined
     case "scroll_page":     dispatchCommand({ type: "SCROLL",      direction: args.direction as "up"|"down"|"top"|"bottom", amount: (args.amount as number) ?? 400 }); return undefined
     case "add_to_cart":     dispatchCommand({ type: "ADD_TO_CART", slug: args.slug as string, name: args.name as string }); return undefined
