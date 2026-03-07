@@ -14,17 +14,18 @@ export async function POST(req: NextRequest) {
   }
 
   const existing = await prisma.siteContent.findUnique({ where: { id: "newsletter_subscribers" } })
-  const list: string[] = existing ? JSON.parse(existing.value) : []
+  const list: string[] = existing ? JSON.parse(existing.live || "[]") : []
 
   if (list.includes(email)) {
     return NextResponse.json({ message: "Already subscribed" })
   }
 
   list.push(email)
+  const serialized = JSON.stringify(list)
   await prisma.siteContent.upsert({
     where: { id: "newsletter_subscribers" },
-    update: { value: JSON.stringify(list), updatedAt: new Date() },
-    create: { id: "newsletter_subscribers", value: JSON.stringify(list), updatedAt: new Date() },
+    update: { draft: serialized, live: serialized },
+    create: { id: "newsletter_subscribers", draft: serialized, live: serialized },
   })
 
   return NextResponse.json({ success: true })

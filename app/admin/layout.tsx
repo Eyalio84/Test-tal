@@ -3,7 +3,8 @@ import { auth } from "@/lib/auth"
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
-  if (!session || session.user?.email !== process.env.ADMIN_EMAIL) redirect("/")
+  if (!session) redirect("/api/auth/signin?callbackUrl=/admin")
+  if (session.user?.email !== process.env.ADMIN_EMAIL) redirect("/")
 
   return (
     <div className="pt-24 pb-20 min-h-screen bg-stone-50">

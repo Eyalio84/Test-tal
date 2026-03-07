@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link   from "next/link"
 import { prisma } from "@/lib/db"
 
 export const metadata: Metadata = { title: "Admin" }
@@ -26,6 +27,21 @@ export default async function AdminPage() {
 
   return (
     <div>
+      {/* Editor shortcut */}
+      <Link
+        href="/admin/editor"
+        className="flex items-center gap-3 mb-8 px-5 py-4 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition group"
+      >
+        <span className="text-2xl">✏️</span>
+        <div className="flex-1">
+          <div className="font-medium text-sm">Site Editor</div>
+          <div className="text-xs text-zinc-400">Edit site content by voice or mouse · draft → publish workflow</div>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-zinc-500 group-hover:text-white transition">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
+        </svg>
+      </Link>
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         {stats.map((s) => (

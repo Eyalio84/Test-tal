@@ -45,6 +45,17 @@ const ARIA_FUNCTIONS = [
   { name: "check_stock",               description: "Check if a specific product is in stock",                              parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: "gold-bracelet-set | pearl-drop-earrings | sapphire-statement-ring | diamond-solitaire-pendant | rose-gold-chain-necklace | emerald-stud-earrings | vintage-gold-brooch | sterling-silver-cuff" } }, required: ["slug"] } },
   { name: "filter_by_price",           description: "Filter shop products by maximum price — use for 'show me items under $X'", parameters: { type: "OBJECT", properties: { maxPrice: { type: "NUMBER", description: "Maximum price in USD e.g. 100" } }, required: ["maxPrice"] } },
   { name: "describe_current_product",  description: "Describe the product currently shown on the page — name, price, materials, story", parameters: { type: "OBJECT", properties: {} } },
+
+  // ── Editor-mode functions (only active in /admin/editor) ─────────────────
+  { name: "set_hero_text",     description: "Set the hero headline text",                                             parameters: { type: "OBJECT", properties: { text: { type: "STRING" } }, required: ["text"] } },
+  { name: "set_hero_subtitle", description: "Set the hero subtitle / subline text",                                  parameters: { type: "OBJECT", properties: { text: { type: "STRING" } }, required: ["text"] } },
+  { name: "set_color",         description: "Set a theme color — primary, secondary, accent, or background",          parameters: { type: "OBJECT", properties: { target: { type: "STRING", description: "primary | secondary | accent | background" }, value: { type: "STRING", description: "CSS color e.g. #D4AF37" } }, required: ["target","value"] } },
+  { name: "add_section",       description: "Add a new content section to the page",                                 parameters: { type: "OBJECT", properties: { type: { type: "STRING", description: "features | testimonials | cta | gallery" }, position: { type: "STRING", description: "after_hero | before_footer" } }, required: ["type"] } },
+  { name: "remove_section",    description: "Remove a section — always asks for confirmation first",                  parameters: { type: "OBJECT", properties: { sectionId: { type: "STRING" } }, required: ["sectionId"] } },
+  { name: "reorder_section",   description: "Move a section up or down — always asks for confirmation first",        parameters: { type: "OBJECT", properties: { sectionId: { type: "STRING" }, direction: { type: "STRING", description: "up | down" } }, required: ["sectionId","direction"] } },
+  { name: "publish_changes",   description: "Publish all draft changes to the live site",                            parameters: { type: "OBJECT", properties: {} } },
+  { name: "undo_edit",         description: "Undo the last edit",                                                     parameters: { type: "OBJECT", properties: {} } },
+  { name: "redo_edit",         description: "Redo the last undone edit",                                              parameters: { type: "OBJECT", properties: {} } },
 ]
 
 const { aria: ariaTheme, brand } = activeTheme
@@ -218,6 +229,112 @@ async function executeCommand(name: string, args: Record<string, unknown>): Prom
       return undefined
     }
 
+    // ── Editor commands ────────────────────────────────────────────────────
+
+    case "set_hero_text": {
+      if (!aria().editorMode) return undefined
+      const text = args.text as string
+      const r = await fetch("/api/content", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: "hero_headline", value: text }) })
+      const data = await r.json() as { snapshotId?: string }
+      aria().updateDraftKey("hero_headline", text)
+      if (data.snapshotId) { aria().pushUndo(data.snapshotId); aria().clearRedoStack() }
+      return `Hero headline set to: "${text.slice(0, 60)}${text.length > 60 ? "…" : ""}"`
+    }
+
+    case "set_hero_subtitle": {
+      if (!aria().editorMode) return undefined
+      const text = args.text as string
+      const r = await fetch("/api/content", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: "hero_subline", value: text }) })
+      const data = await r.json() as { snapshotId?: string }
+      aria().updateDraftKey("hero_subline", text)
+      if (data.snapshotId) { aria().pushUndo(data.snapshotId); aria().clearRedoStack() }
+      return `Hero subtitle set to: "${text.slice(0, 60)}${text.length > 60 ? "…" : ""}"`
+    }
+
+    case "set_color": {
+      if (!aria().editorMode) return undefined
+      const target = args.target as string
+      const value  = args.value  as string
+      const key    = `color_${target}`
+      const r    = await fetch("/api/content", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, value }) })
+      const data = await r.json() as { snapshotId?: string }
+      aria().updateDraftKey(key, value)
+      if (data.snapshotId) { aria().pushUndo(data.snapshotId); aria().clearRedoStack() }
+      return `${target} color updated to ${value}`
+    }
+
+    case "add_section": {
+      if (!aria().editorMode) return undefined
+      const type     = args.type     as string
+      const position = (args.position as string | undefined) ?? "before_footer"
+      const cRes  = await fetch("/api/content")
+      const cData = await cRes.json() as { content: Record<string, string> }
+      const current = JSON.parse(cData.content["sections_order"] || '["hero","featured_products","collections","cta"]') as string[]
+      const newId   = `${type}_${Date.now()}`
+      const updated = position === "after_hero"
+        ? [current[0], newId, ...current.slice(1)]
+        : [...current.slice(0, -1), newId, current[current.length - 1]]
+      const r    = await fetch("/api/content", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: "sections_order", value: JSON.stringify(updated) }) })
+      const data = await r.json() as { snapshotId?: string }
+      aria().updateDraftKey("sections_order", JSON.stringify(updated))
+      if (data.snapshotId) { aria().pushUndo(data.snapshotId); aria().clearRedoStack() }
+      return `Added ${type} section ${position === "after_hero" ? "after the hero" : "before the footer"}`
+    }
+
+    case "remove_section": {
+      if (!aria().editorMode) return undefined
+      aria().setPendingConfirm({ action: "remove_section", args })
+      aria().dispatchCommand({ type: "PENDING_CONFIRM", action: "remove_section", args })
+      return `Are you sure you want to remove the "${args.sectionId as string}" section? Say yes to confirm or no to cancel.`
+    }
+
+    case "reorder_section": {
+      if (!aria().editorMode) return undefined
+      aria().setPendingConfirm({ action: "reorder_section", args })
+      aria().dispatchCommand({ type: "PENDING_CONFIRM", action: "reorder_section", args })
+      return `Move the "${args.sectionId as string}" section ${args.direction as string}? Say yes to confirm or no to cancel.`
+    }
+
+    case "publish_changes": {
+      if (!aria().editorMode) return undefined
+      aria().setPublishing(true)
+      try {
+        const r    = await fetch("/api/content/publish", { method: "POST" })
+        const data = await r.json() as { ok: boolean; published: number; message?: string }
+        return data.ok ? (data.message ?? `Published ${data.published} changes to the live site.`) : "Publish failed — please try again."
+      } finally {
+        aria().setPublishing(false)
+      }
+    }
+
+    case "undo_edit": {
+      if (!aria().editorMode) return undefined
+      const snapshotId = aria().popUndo()
+      if (!snapshotId) return "Nothing to undo."
+      // Save current state for redo
+      const saveRes  = await fetch("/api/content/snapshot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "create" }) })
+      const saveData = await saveRes.json() as { id?: string }
+      if (saveData.id) aria().pushRedo(saveData.id)
+      // Restore
+      const r    = await fetch("/api/content/snapshot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ snapshotId }) })
+      const data = await r.json() as { content?: Record<string, string> }
+      if (data.content) aria().setDraftContent(data.content)
+      return undefined
+    }
+
+    case "redo_edit": {
+      if (!aria().editorMode) return undefined
+      const snapshotId = aria().popRedo()
+      if (!snapshotId) return "Nothing to redo."
+      const saveRes  = await fetch("/api/content/snapshot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "create" }) })
+      const saveData = await saveRes.json() as { id?: string }
+      if (saveData.id) aria().pushUndo(saveData.id)
+      const r    = await fetch("/api/content/snapshot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ snapshotId }) })
+      const data = await r.json() as { content?: Record<string, string> }
+      if (data.content) aria().setDraftContent(data.content)
+      return undefined
+    }
+
     default: return undefined
   }
 }
@@ -265,6 +382,11 @@ export async function ariaConnect() {
         }
       } catch {
         // silently skip if memory fetch fails — Aria still works without it
+      }
+
+      // Editor mode: inject editor instructions
+      if (aria().editorMode) {
+        systemPrompt += "\n\nEDITOR MODE: You are helping the site owner edit their website by voice. After each successful edit, confirm in one short sentence what changed. For remove_section and reorder_section, a confirmation modal will appear — tell the user to confirm or say yes/no. For publish_changes, announce success. Undo/redo are available by voice."
       }
 
       ws.send(JSON.stringify({

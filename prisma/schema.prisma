@@ -21,7 +21,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -67,13 +67,21 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SiteContent {
-  id        String   @id
-  value     String
-  updatedAt DateTime @updatedAt
+  id           String   @id
+  draft        String   @default("")
+  live         String   @default("")
+  lastEditedBy String?
+  updatedAt    DateTime @updatedAt
+}
+
+model SiteSnapshot {
+  id          String   @id @default(cuid())
+  contentJson String
+  createdAt   DateTime @default(now())
 }
 
 model User {
