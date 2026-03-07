@@ -4,7 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { AuthButtons } from "@/components/ui/AuthButtons"
 import { CartButton } from "@/components/ui/CartButton"
-import { useWishlist } from "@/store/wishlist"
+import { useWishlist }  from "@/store/wishlist"
+import { activeTheme } from "@/lib/theme"
 
 function WishlistButton() {
   const count = useWishlist((s) => s.slugs.length)
@@ -36,7 +37,7 @@ export function Navbar() {
     <header aria-label="Site header" className="fixed top-8 inset-x-0 z-40 bg-white/95 backdrop-blur-sm border-b border-stone-100">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/" className="font-serif text-xl tracking-wider text-ink">
-          STORE
+          {activeTheme.brand.name.toUpperCase()}
         </Link>
 
         {/* Desktop nav */}

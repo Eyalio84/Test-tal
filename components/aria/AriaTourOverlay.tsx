@@ -60,7 +60,7 @@ function TourCard({ step, index, total, onNext, onEnd }: {
             </mask>
           </defs>
           <rect width="100%" height="100%" fill="rgba(0,0,0,0.75)" mask="url(#aria-tour-mask)" />
-          <rect x={spot.left-PAD} y={spot.top-PAD} width={spot.width+PAD*2} height={spot.height+PAD*2} rx="16" fill="none" stroke="#c9a96e" strokeWidth="2.5" />
+          <rect x={spot.left-PAD} y={spot.top-PAD} width={spot.width+PAD*2} height={spot.height+PAD*2} rx="16" fill="none" stroke="var(--theme-accent)" strokeWidth="2.5" />
         </svg>
         <div className="fixed z-[62] left-4 right-4 pointer-events-auto" style={{ top: cardTop }}>
           <Card step={step} index={index} total={total} onNext={onNext} onEnd={onEnd} />
@@ -85,17 +85,17 @@ function Card({ step, index, total, onNext, onEnd }: {
     <div className="rounded-2xl overflow-hidden shadow-2xl" style={{ background:"rgba(10,10,10,0.93)", backdropFilter:"blur(16px)", border:"1px solid rgba(201,169,110,0.3)" }}>
       {/* Progress bar */}
       <div className="h-0.5 bg-white/10">
-        <div className="h-full transition-all duration-500" style={{ width:`${((index+1)/total)*100}%`, background:"#c9a96e" }} />
+        <div className="h-full transition-all duration-500" style={{ width:`${((index+1)/total)*100}%`, background:"var(--theme-accent)" }} />
       </div>
 
       <div className="px-5 py-4">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background:"linear-gradient(135deg, #e0c080, #a07840)" }}>
+          <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background:"linear-gradient(135deg, var(--theme-accent-light), var(--theme-accent-dark))" }}>
             <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-white">
               <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z"/>
             </svg>
           </div>
-          <span style={{ color:"#c9a96e", fontSize:"10px", letterSpacing:"0.15em", textTransform:"uppercase" }}>
+          <span style={{ color:"var(--theme-accent)", fontSize:"10px", letterSpacing:"0.15em", textTransform:"uppercase" }}>
             Aria · {index+1} of {total}
           </span>
         </div>
@@ -110,7 +110,7 @@ function Card({ step, index, total, onNext, onEnd }: {
           <button
             onClick={index+1 >= total ? onEnd : onNext}
             className="px-5 py-2 rounded-full text-xs font-medium tracking-wider transition hover:scale-105 active:scale-95"
-            style={{ background:"linear-gradient(135deg, #e0c080, #a07840)", color:"#fff" }}
+            style={{ background:"linear-gradient(135deg, var(--theme-accent-light), var(--theme-accent-dark))", color:"#fff" }}
           >
             {index+1 >= total ? "Done ✦" : "Next →"}
           </button>

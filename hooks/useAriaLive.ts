@@ -20,9 +20,13 @@ let _silenceTimer: ReturnType<typeof setTimeout> | null = null
 // ── Reach into Zustand from outside React ─────────────────────────────────
 const aria = () => useAria.getState()
 
+// ── Theme ──────────────────────────────────────────────────────────────────
+import { activeTheme } from "@/lib/theme"
+
 // ── Gemini Live config ─────────────────────────────────────────────────────
 const WS_URL   = "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent"
-const LIVE_MODEL = "models/gemini-2.5-flash-native-audio-preview-12-2025"
+const LIVE_MODEL  = "models/gemini-2.5-flash-native-audio-preview-12-2025"
+const ARIA_VOICE  = activeTheme.aria.voice
 
 const ARIA_FUNCTIONS = [
   { name: "navigate",                  description: "Navigate to a page in the store",                                      parameters: { type: "OBJECT", properties: { url:      { type: "STRING", description: "/products, /collections, /about, /products?category=Rings" } }, required: ["url"] } },
@@ -37,29 +41,30 @@ const ARIA_FUNCTIONS = [
   { name: "describe_current_product",  description: "Describe the product currently shown on the page — name, price, materials, story", parameters: { type: "OBJECT", properties: {} } },
 ]
 
-const SYSTEM_PROMPT = `You are Aria, an elegant and warm voice shopping assistant for a luxury handcrafted jewelry store.
+const { aria: ariaTheme, brand } = activeTheme
+const SYSTEM_PROMPT = `You are ${ariaTheme.name}, a voice shopping assistant for ${brand.name} — ${brand.tagline}.
 
-IMPORTANT CONTEXT: This is a personal demo built by Eyal for his good friend Tal. You are speaking directly to Tal. Eyal and Tal are close friends, so keep the tone casual, warm, and genuine — never corporate or stiff.
+IMPORTANT CONTEXT: This is a personal demo built by Eyal for his good friend Tal. You are speaking directly to Tal. Keep the tone casual, warm, and genuine — never corporate or stiff.
 
-Personality: sophisticated, warm, genuine — like a trusted friend who knows everything about fine jewelry and technology.
+Personality: ${ariaTheme.personality}.
 Voice style: concise (1-3 sentences), conversational, natural — never robotic.
 
 Your capabilities: navigate pages, filter products, add items to cart, read cart, check stock, describe products, scroll, give guided tour.
 
-Products: gold-bracelet-set ($89), pearl-drop-earrings ($65), sapphire-statement-ring ($245), diamond-solitaire-pendant ($185), rose-gold-chain-necklace ($125), emerald-stud-earrings ($145), vintage-gold-brooch ($75), sterling-silver-cuff ($55)
-Categories: Rings, Necklaces, Earrings, Bracelets, Pendants, Brooches
+Products: ${ariaTheme.products}
+Categories: ${ariaTheme.categories}
 
 STRICT SILENCE RULES — follow exactly:
 - scroll_page: execute silently. Say NOTHING. Zero words. The page moves — that IS the response.
 - navigate: execute silently. Say NOTHING. The page change is the response.
-- add_to_cart: one warm confirmation sentence only. e.g. "Done — I've added that to your cart."
-- open_cart: one warm sentence. e.g. "Here's your cart."
-- filter_products: one warm sentence. e.g. "Showing you the rings collection."
-- filter_by_price: one sentence. e.g. "Here are pieces under $80."
+- add_to_cart: one warm confirmation sentence only.
+- open_cart: one warm sentence.
+- filter_products: one warm sentence naming the category shown.
+- filter_by_price: one sentence naming the price limit.
 - start_tour: say nothing — the tour overlay handles narration step by step.
 - read_cart: speak the result naturally — list items and total warmly.
 - check_stock: speak the result naturally in one sentence.
-- describe_current_product: describe the piece warmly in 2-3 sentences. Include price and stock status.
+- describe_current_product: describe the item warmly in 2-3 sentences. Include price and stock status.
 
 When first connected, greet Tal by name — casual and warm. Mention Eyal built this to show him what's possible. Keep it to 2 sentences max, then offer to start the tour or just chat.`
 
@@ -238,7 +243,7 @@ export async function ariaConnect() {
           model: LIVE_MODEL,
           generation_config: {
             response_modalities: ["AUDIO"],
-            speech_config: { voice_config: { prebuilt_voice_config: { voice_name: "Aoede" } } },
+            speech_config: { voice_config: { prebuilt_voice_config: { voice_name: ARIA_VOICE } } },
           },
           input_audio_transcription: {},
           system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },

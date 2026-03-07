@@ -1,29 +1,47 @@
 import type { Metadata } from "next"
-import { Playfair_Display, Inter, Lexend } from "next/font/google"
-import { Providers } from "@/components/layout/Providers"
-import { Navbar } from "@/components/layout/Navbar"
-import { Footer } from "@/components/layout/Footer"
-import { FloatingDock } from "@/components/ui/FloatingDock"
+import { Playfair_Display, Inter, Lexend, Fredoka, Lora, Cormorant_Garamond } from "next/font/google"
+import { Providers }           from "@/components/layout/Providers"
+import { Navbar }              from "@/components/layout/Navbar"
+import { Footer }              from "@/components/layout/Footer"
+import { FloatingDock }        from "@/components/ui/FloatingDock"
 import { AriaCommandDispatcher } from "@/components/aria/AriaCommandDispatcher"
-import { AriaTourOverlay } from "@/components/aria/AriaTourOverlay"
-import { SkipLink } from "@/components/ui/SkipLink"
-import { LiveRegion } from "@/components/ui/LiveRegion"
-import { AccessibilityPanel } from "@/components/ui/AccessibilityPanel"
-import { ShippingBanner } from "@/components/ui/ShippingBanner"
+import { AriaTourOverlay }     from "@/components/aria/AriaTourOverlay"
+import { SkipLink }            from "@/components/ui/SkipLink"
+import { LiveRegion }          from "@/components/ui/LiveRegion"
+import { AccessibilityPanel }  from "@/components/ui/AccessibilityPanel"
+import { ShippingBanner }      from "@/components/ui/ShippingBanner"
+import { ThemeApplier }        from "@/components/layout/ThemeApplier"
+import { activeTheme }         from "@/lib/theme"
 import "./globals.css"
 
-const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
-const inter    = Inter({ subsets: ["latin"], variable: "--font-inter" })
-const lexend   = Lexend({ subsets: ["latin"], variable: "--font-lexend", display: "swap" })
+// All theme fonts loaded once — CSS variable determines which is active
+const playfair   = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
+const inter      = Inter({ subsets: ["latin"], variable: "--font-inter" })
+const lexend     = Lexend({ subsets: ["latin"], variable: "--font-lexend", display: "swap" })
+const fredoka    = Fredoka({ subsets: ["latin"], variable: "--font-fredoka" })
+const lora       = Lora({ subsets: ["latin"], variable: "--font-lora" })
+const cormorant  = Cormorant_Garamond({ subsets: ["latin"], variable: "--font-cormorant", weight: ["400","500","600"] })
 
 export const metadata: Metadata = {
-  title: { template: "%s | Store", default: "Store — Handcrafted Jewelry" },
-  description: "Handcrafted jewelry with intention. Discover our collections.",
+  title:       { template: `%s | ${activeTheme.brand.name}`, default: activeTheme.meta.title },
+  description: activeTheme.meta.description,
 }
+
+const fontVars = [
+  playfair.variable,
+  inter.variable,
+  lexend.variable,
+  fredoka.variable,
+  lora.variable,
+  cormorant.variable,
+].join(" ")
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${playfair.variable} ${inter.variable} ${lexend.variable}`}>
+    <html lang="en" className={fontVars}>
+      <head>
+        <ThemeApplier />
+      </head>
       <body>
         <Providers>
           <ShippingBanner />

@@ -1,14 +1,16 @@
-import { Hero } from "@/components/sections/Hero"
+import { Hero }        from "@/components/sections/Hero"
+import { activeTheme } from "@/lib/theme"
 
 export default function HomePage() {
+  const { hero } = activeTheme
   return (
     <Hero
-      headline="Handcrafted with intention."
-      subline="Each piece tells a story."
-      ctaText="Shop Now"
+      headline={hero.headline}
+      subline={hero.subline}
+      ctaText={hero.ctaText}
       ctaHref="/products"
-      imageSrc="https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=1600&q=80"
-      imageAlt="Featured jewelry collection"
+      imageSrc={hero.image}
+      imageAlt={hero.imageAlt}
     />
   )
 }

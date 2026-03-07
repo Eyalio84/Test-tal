@@ -117,13 +117,13 @@ function MainOrb({
   ariaState: string; isConnected: boolean; isOpen: boolean; onClick: () => void
 }) {
   const gradient = (() => {
-    if (isOpen)          return "linear-gradient(135deg, #d4b483 0%, #b8923a 50%, #c9a96e 100%)"
+    if (isOpen)          return "linear-gradient(135deg, #d4b483 0%, #b8923a 50%, var(--theme-accent) 100%)"
     if (ariaState === "speaking")  return "linear-gradient(135deg, #f0f0f0 0%, #d0d0d0 50%, #ffffff 100%)"
     if (ariaState === "listening" || ariaState === "thinking")
-                         return "linear-gradient(135deg, #ffe066 0%, #c9a96e 50%, #a07840 100%)"
-    if (ariaState === "connecting") return "linear-gradient(135deg, #ffd700 0%, #c9a96e 100%)"
+                         return "linear-gradient(135deg, #ffe066 0%, var(--theme-accent) 50%, var(--theme-accent-dark) 100%)"
+    if (ariaState === "connecting") return "linear-gradient(135deg, #ffd700 0%, var(--theme-accent) 100%)"
     // idle — rich gold
-    return "linear-gradient(135deg, #e0c080 0%, #c9a96e 40%, #a07840 70%, #c9a96e 100%)"
+    return "linear-gradient(135deg, var(--theme-accent-light) 0%, var(--theme-accent) 40%, var(--theme-accent-dark) 70%, var(--theme-accent) 100%)"
   })()
 
   const glowColor = (() => {
@@ -190,13 +190,13 @@ export function FloatingDock() {
       icon:    <span className="text-white"><TourIcon /></span>,
       label:   "Start Tour",
       onClick: () => { startTour(STORE_TOUR); setOpen(false) },
-      accent:  "linear-gradient(135deg, #c9a96e, #8b6914)",
+      accent:  "linear-gradient(135deg, var(--theme-accent), #8b6914)",
     },
     {
       icon:    <span className="text-white"><A11yIcon /></span>,
       label:   "Accessibility",
       onClick: () => { openPanel(); setOpen(false) },
-      accent:  "linear-gradient(135deg, #c9a96e, #a07840)",
+      accent:  "linear-gradient(135deg, var(--theme-accent), var(--theme-accent-dark))",
     },
     ...(whatsapp ? [{
       icon:    <span className="text-white"><WhatsAppIcon /></span>,
