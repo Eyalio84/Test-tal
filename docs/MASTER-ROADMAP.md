@@ -26,7 +26,8 @@ Business model: API proxy (buy Gemini capacity in bulk, resell via subscription 
 |----|---------------------------|-------------|--------------------------------------------------------------|
 | 1  | Platform Foundation        | ✅ COMPLETE | Admin guard, Stripe subs+webhook, Aria memory, rate limiting  |
 | 2  | Aria-as-Editor             | NEXT        | Voice editing → SiteContent writes, live preview             |
-| 3  | Theme Pack Polish          | PENDING     | Collections/ARIA_FUNCTIONS per-theme, domain images          |
+| 3  | Theme Pack Polish          | ✅ COMPLETE | Collections/ARIA_FUNCTIONS per-theme, domain images          |
+| PP | Platform Pivot             | ✅ COMPLETE | /demos showcase, multi-tenant Site model, 3-context Aria, member workspace |
 | ── | **📦 PACKAGE POINT A**     | after P3    | Push: foundation + voice editor + themes baseline            |
 | 4  | Atomic Component Library   | PENDING     | 30-50 components, standard interface, browsable catalog      |
 | 5  | Page Layout Library        | PENDING     | 10-15 blank layouts, blank canvas mode                       |
@@ -85,7 +86,23 @@ Business model: API proxy (buy Gemini capacity in bulk, resell via subscription 
 
 ---
 
+## Platform Pivot — Scope (✅ COMPLETE — 2026-03-07)
+- [x] Platform homepage: dark hero, 8-theme demo grid, 3-tier pricing
+- [x] Demo routes: /demos/[themeId]/ — isolated live demos, no DB reads, generateStaticParams
+- [x] Context-aware Navbar: platform / demo / member / store modes
+- [x] ThemeApplierStatic: prop-driven CSS var injection for demo isolation
+- [x] Prisma: Site model (multi-tenant), siteId on SiteContent/SiteSnapshot/Product
+- [x] Auto-provision Site on first login (auth.ts session callback)
+- [x] Member workspace: 3-col dashboard, site overview, Aria invite panel
+- [x] Content API: siteId-scoped reads with global fallback
+- [x] Aria three-context persona: platform guide / demo store / member builder
+- [x] Platform footer + context-aware ShippingBanner
+- [x] ariaContext Zustand field + setAriaContext action
+
+---
+
 ## Plan #4 — Atomic Component Library (PENDING)
+(Atomic components now serve the member zone: dashboard, editor, settings)
 ### Scope
 - [ ] Buttons: 10 variants (primary, ghost, outline, pill, icon, loading, etc.)
 - [ ] Inputs: text, email, password, search, textarea, with validation states
@@ -110,6 +127,7 @@ Business model: API proxy (buy Gemini capacity in bulk, resell via subscription 
 ---
 
 ## Plan #6 — Visual Editor v1 (PENDING)
+Visual editor lives at /dashboard/editor
 ### Scope
 - [ ] Drag to place components from palette
 - [ ] Resize handles on selected component
@@ -130,6 +148,7 @@ Business model: API proxy (buy Gemini capacity in bulk, resell via subscription 
 ---
 
 ## Plan #8 — Theme Marketplace UI (PENDING)
+/demos is the theme marketplace — foundational work done in Platform Pivot
 ### Scope
 - [ ] /themes route: grid of all available theme packs
 - [ ] Theme card: preview image, name, domain, Aria voice/personality preview
