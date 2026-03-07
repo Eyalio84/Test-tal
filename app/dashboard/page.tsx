@@ -67,10 +67,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="pt-24 pb-20 min-h-screen bg-stone-50">
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="font-serif text-2xl text-ink">
               Hey, {session.user.name?.split(" ")[0] ?? "there"}
@@ -85,8 +85,8 @@ export default async function DashboardPage() {
         {/* 3-column workspace grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
-          {/* ── Left column: Site nav links (col-span-2) ── */}
-          <aside className="md:col-span-2">
+          {/* ── Left column: Site nav links (col-span-2) — hidden on mobile (navbar covers it) ── */}
+          <aside className="hidden md:block md:col-span-2">
             <nav className="bg-white border border-stone-100 p-4">
               <p className="text-[10px] tracking-widest uppercase text-ink/30 mb-3">Site</p>
               <ul className="space-y-1">
@@ -105,7 +105,7 @@ export default async function DashboardPage() {
           </aside>
 
           {/* ── Center column: Site overview + quick actions (col-span-7) ── */}
-          <main className="md:col-span-7 flex flex-col gap-6">
+          <main className="order-2 md:order-none md:col-span-7 flex flex-col gap-6">
 
             {/* Site overview card */}
             <div className="bg-white border border-stone-100 p-6">
@@ -213,8 +213,8 @@ export default async function DashboardPage() {
             </div>
           </main>
 
-          {/* ── Right column: Aria invite panel (col-span-3) ── */}
-          <aside className="md:col-span-3">
+          {/* ── Right column: Aria invite panel (col-span-3) — first on mobile ── */}
+          <aside className="order-1 md:order-none md:col-span-3">
             <DashboardAriaPanel />
           </aside>
 
