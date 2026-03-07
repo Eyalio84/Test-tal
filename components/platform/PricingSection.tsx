@@ -87,7 +87,7 @@ export function PricingSection() {
                     : "border border-zinc-600 hover:border-zinc-400 text-current",
                 ].join(" ")}
               >
-                Get started
+                Get started →
               </Link>
             </div>
           ))}
