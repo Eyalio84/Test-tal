@@ -4,30 +4,54 @@ import { prisma } from "@/lib/db"
 import { rateLimit, getClientIp as getRateIp } from "@/lib/rateLimit"
 
 
-// GET /api/content — returns all SiteContent
-// ?view=draft (admin only) → draft values
-// default                  → live values (public)
+// GET /api/content — returns SiteContent
+// ?view=draft (admin only) → draft values (global, for the admin editor)
+// default, authenticated   → live values scoped to caller's site, falling back to global rows (siteId IS NULL)
+// default, anonymous       → live values from global rows only
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const wantDraft = searchParams.get("view") === "draft"
 
+  const session = await auth()
+
   if (wantDraft) {
-    const session = await auth()
+    // Admin editor path — return all global content unchanged
     if (session?.user?.email !== process.env.ADMIN_EMAIL) {
       return NextResponse.json({ error: "forbidden" }, { status: 403 })
     }
+    const rows = await prisma.siteContent.findMany()
+    const content: Record<string, string> = {}
+    for (const row of rows) content[row.id] = row.draft
+    return NextResponse.json({ content })
   }
 
-  const rows = await prisma.siteContent.findMany()
+  // Resolve the caller's siteId (null for anonymous or users without a site)
+  const siteId = session?.user?.id
+    ? (await prisma.site.findFirst({ where: { ownerId: session.user.id }, select: { id: true } }))?.id ?? null
+    : null
+
+  // Fetch global rows + site-specific rows (if siteId is known)
+  const rows = await prisma.siteContent.findMany({
+    where: siteId ? { OR: [{ siteId }, { siteId: null }] } : { siteId: null },
+  })
+
+  // Site-specific rows override global (null siteId) ones for the same key
   const content: Record<string, string> = {}
   for (const row of rows) {
-    content[row.id] = wantDraft ? row.draft : row.live
+    const val = row.live
+    // A site-specific row always wins over a global row
+    if (content[row.id] === undefined || row.siteId === siteId) {
+      content[row.id] = val
+    }
   }
+
   return NextResponse.json({ content })
 }
 
 // PATCH /api/content — update one key's draft value, save snapshot
 // Body: { key: string, value: string }
+// NOTE: This is the admin editor path — writes are global (siteId: null).
+//       Member-scoped content writes (per-siteId) are future work.
 export async function PATCH(req: NextRequest) {
   const session = await auth()
   if (session?.user?.email !== process.env.ADMIN_EMAIL) {

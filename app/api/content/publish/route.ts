@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 
 // POST /api/content/publish — copy all draft → live + revalidate public pages
+// NOTE: This is the admin editor path — publishes global (siteId: null) content only.
+//       Per-site publish flows are future work once member content writes are supported.
 export async function POST() {
   const session = await auth()
   if (session?.user?.email !== process.env.ADMIN_EMAIL) {
