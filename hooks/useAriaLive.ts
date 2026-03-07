@@ -43,7 +43,7 @@ function buildAriaConfig(themeId: string) {
         }, required: ["themeId"] } },
       { name: "navigate",
         description: "Navigate to a page",
-        parameters: { type: "OBJECT", properties: { url: { type: "STRING", description: "/, /demos, /about" } }, required: ["url"] } },
+        parameters: { type: "OBJECT", properties: { url: { type: "STRING", description: "/, /demos, /demos/[themeId], /themes, /about" } }, required: ["url"] } },
       { name: "scroll_page",
         description: "Scroll the page up, down, top, or bottom",
         parameters: { type: "OBJECT", properties: { direction: { type: "STRING", description: "up | down | top | bottom" }, amount: { type: "NUMBER" } }, required: ["direction"] } },
@@ -66,7 +66,7 @@ Keep all responses under 3 sentences. Navigate silently without announcing URLs.
         key:   { type: "STRING", description: "short identifier e.g. preferred_name, style_notes, size_preference" },
         value: { type: "STRING", description: "what to remember about the user" },
       }, required: ["key", "value"] } },
-    { name: "navigate",                  description: "Navigate to a page",                                                   parameters: { type: "OBJECT", properties: { url:      { type: "STRING", description: ariaContext === "member" ? "/dashboard, /admin/editor, /admin/themes, /products, /collections, /about" : "/products, /collections, /about" } }, required: ["url"] } },
+    { name: "navigate",                  description: "Navigate to any page on the site",                                     parameters: { type: "OBJECT", properties: { url:      { type: "STRING", description: ariaContext === "member" ? "/, /dashboard, /admin/editor, /admin/themes, /admin, /products, /collections, /about, /themes, /demos" : "/, /products, /collections, /about, /demos, /themes" } }, required: ["url"] } },
     { name: "scroll_page",               description: "Scroll the page up, down, top, or bottom",                             parameters: { type: "OBJECT", properties: { direction: { type: "STRING", description: "up | down | top | bottom" }, amount: { type: "NUMBER" } }, required: ["direction"] } },
     { name: "add_to_cart",               description: `Add a product to the cart`,                                            parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: ariaTheme.products }, name: { type: "STRING" } }, required: ["slug","name"] } },
     { name: "open_cart",                 description: "Open the shopping cart",                                               parameters: { type: "OBJECT", properties: {} } },
@@ -90,8 +90,8 @@ Keep all responses under 3 sentences. Navigate silently without announcing URLs.
 
   // Member context: override opening lines, keep rest of personality
   const personaOpening = ariaContext === "member"
-    ? `You are Aria, a voice-powered site builder. You're helping a member build and manage their online store.\nYou can navigate to the dashboard (/dashboard), visual editor (/admin/editor), theme switcher (/admin/themes), or any store page.\nPersonality: ${ariaTheme.personality}.`
-    : `You are ${ariaTheme.name}, a voice shopping assistant for ${brand.name} — ${brand.tagline}.\n\nIMPORTANT CONTEXT: This is a personal demo built by Eyal for his good friend Tal. You are speaking directly to Tal. Keep the tone casual, warm, and genuine — never corporate or stiff.\n\nPersonality: ${ariaTheme.personality}.`
+    ? `You are Aria, a voice-powered site builder. You're helping a member build and manage their online store.\nYou can navigate anywhere on the site: dashboard, editor, themes, store pages, and more.\nPersonality: ${ariaTheme.personality}.`
+    : `You are ${ariaTheme.name}, a voice shopping assistant for ${brand.name} — ${brand.tagline}.\nPersonality: ${ariaTheme.personality}.`
 
   const systemPrompt = `${personaOpening}
 Voice style: concise (1-3 sentences), conversational, natural — never robotic.
@@ -112,7 +112,7 @@ STRICT SILENCE RULES — follow exactly:
 - check_stock: speak the result naturally in one sentence.
 - describe_current_product: describe the item warmly in 2-3 sentences. Include price and stock status.
 
-When first connected, greet Tal by name — casual and warm. Mention Eyal built this to show him what's possible. Keep it to 2 sentences max, then ask what he'd like to explore.`
+When first connected, greet the user warmly and briefly — 1-2 sentences max — then ask what they'd like to explore.`
 
   return { voice: ariaTheme.voice, functions, systemPrompt }
 }
