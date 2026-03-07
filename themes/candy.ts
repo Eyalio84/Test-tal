@@ -46,4 +46,17 @@ export const candyTheme: ThemeConfig = {
     { name: "Jelly Bean Variety",          slug: "jelly-bean-variety",         description: "50 flavors, 2 pounds. The classic crowd-pleaser.",                           price: 14.99, category: "Gummies",    image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=800&q=80",  stockCount: 25 },
     { name: "Black Licorice Mix",          slug: "licorice-mix",               description: "Assorted licorice shapes and sizes, 1.5-pound bag.",                         price: 9.99,  category: "Seasonal",   image: "https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?w=800&q=80",  stockCount: 15 },
   ],
+  about: {
+    story: "Sweet Drops was born out of a simple memory: a glass jar of penny candy at our grandmother's kitchen counter. We founded this store to recreate that feeling — the pure joy of picking your favorites. We source from independent confectioners across Europe and the US, choosing quality over commercial shortcuts every single time.",
+    values: [
+      { title: "Pure ingredients",   desc: "No artificial colors or flavors unless they're the fun kind everyone agrees on." },
+      { title: "Bulk with care",     desc: "Big bags, not big-box quality. Every batch is freshness-checked before dispatch." },
+      { title: "Joy first",          desc: "Candy is happiness in sugar form. We take that seriously." },
+    ],
+    team: [
+      { name: "Lena Marsh",    role: "Co-founder & Chief Candy Officer", image: "https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?w=400&q=80" },
+      { name: "Tom Parish",    role: "Operations & Sourcing",            image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80" },
+      { name: "Daisy Kwon",    role: "Community & Events",               image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&q=80" },
+    ],
+  },
 }

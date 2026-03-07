@@ -48,6 +48,10 @@ interface AriaStore {
   // Pending command (consumed by AriaCommandDispatcher)
   pendingCommand: AriaCommand | null
 
+  // Theme
+  activeThemeId:  string
+  setActiveThemeId: (id: string) => void
+
   // ── Editor mode ──────────────────────────────────────────────────────────
   editorMode:     boolean
   draftContent:   Record<string, string>   // optimistic local cache
@@ -95,6 +99,10 @@ export const useAria = create<AriaStore>((set, get) => ({
   tourStep:        0,
   tourSteps:       [],
   pendingCommand:  null,
+
+  // Theme
+  activeThemeId: (process.env.NEXT_PUBLIC_THEME ?? "jewelry").toLowerCase(),
+  setActiveThemeId: (activeThemeId) => set({ activeThemeId }),
 
   // Editor initial state
   editorMode:      false,

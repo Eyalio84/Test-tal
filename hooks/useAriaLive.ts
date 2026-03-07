@@ -21,45 +21,48 @@ let _silenceTimer: ReturnType<typeof setTimeout> | null = null
 const aria = () => useAria.getState()
 
 // ── Theme ──────────────────────────────────────────────────────────────────
-import { activeTheme } from "@/lib/theme"
+import { THEMES } from "@/lib/theme"
 
 // ── Gemini Live config ─────────────────────────────────────────────────────
-const WS_URL   = "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent"
+const WS_URL      = "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent"
 const LIVE_MODEL  = "models/gemini-2.5-flash-native-audio-preview-12-2025"
-const ARIA_VOICE  = activeTheme.aria.voice
 
-const ARIA_FUNCTIONS = [
-  { name: "save_memory",
-    description: "Save something to remember about this user for next session",
-    parameters: { type: "OBJECT", properties: {
-      key:   { type: "STRING", description: "short identifier e.g. preferred_name, style_notes, size_preference" },
-      value: { type: "STRING", description: "what to remember about the user" },
-    }, required: ["key", "value"] } },
-  { name: "navigate",                  description: "Navigate to a page in the store",                                      parameters: { type: "OBJECT", properties: { url:      { type: "STRING", description: "/products, /collections, /about, /products?category=Rings" } }, required: ["url"] } },
-  { name: "scroll_page",               description: "Scroll the page up, down, top, or bottom",                             parameters: { type: "OBJECT", properties: { direction: { type: "STRING", description: "up | down | top | bottom" }, amount: { type: "NUMBER" } }, required: ["direction"] } },
-  { name: "add_to_cart",               description: "Add a jewelry product to the cart",                                    parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: "gold-bracelet-set | pearl-drop-earrings | sapphire-statement-ring | diamond-solitaire-pendant | rose-gold-chain-necklace | emerald-stud-earrings | vintage-gold-brooch | sterling-silver-cuff" }, name: { type: "STRING" } }, required: ["slug","name"] } },
-  { name: "open_cart",                 description: "Open the shopping cart",                                               parameters: { type: "OBJECT", properties: {} } },
-  { name: "filter_products",           description: "Filter shop by jewelry category",                                      parameters: { type: "OBJECT", properties: { category: { type: "STRING", description: "Rings | Necklaces | Earrings | Bracelets | Pendants | Brooches" } }, required: ["category"] } },
-  { name: "start_tour",                description: "Start Aria's guided store tour",                                       parameters: { type: "OBJECT", properties: {} } },
-  { name: "read_cart",                 description: "Read the current cart contents aloud — items, quantities, and total",  parameters: { type: "OBJECT", properties: {} } },
-  { name: "check_stock",               description: "Check if a specific product is in stock",                              parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: "gold-bracelet-set | pearl-drop-earrings | sapphire-statement-ring | diamond-solitaire-pendant | rose-gold-chain-necklace | emerald-stud-earrings | vintage-gold-brooch | sterling-silver-cuff" } }, required: ["slug"] } },
-  { name: "filter_by_price",           description: "Filter shop products by maximum price — use for 'show me items under $X'", parameters: { type: "OBJECT", properties: { maxPrice: { type: "NUMBER", description: "Maximum price in USD e.g. 100" } }, required: ["maxPrice"] } },
-  { name: "describe_current_product",  description: "Describe the product currently shown on the page — name, price, materials, story", parameters: { type: "OBJECT", properties: {} } },
+// Build theme-aware config at connect time so switching themes takes effect on next connect
+function buildAriaConfig(themeId: string) {
+  const theme   = THEMES[themeId] ?? THEMES["jewelry"]
+  const { aria: ariaTheme, brand } = theme
 
-  // ── Editor-mode functions (only active in /admin/editor) ─────────────────
-  { name: "set_hero_text",     description: "Set the hero headline text",                                             parameters: { type: "OBJECT", properties: { text: { type: "STRING" } }, required: ["text"] } },
-  { name: "set_hero_subtitle", description: "Set the hero subtitle / subline text",                                  parameters: { type: "OBJECT", properties: { text: { type: "STRING" } }, required: ["text"] } },
-  { name: "set_color",         description: "Set a theme color — primary, secondary, accent, or background",          parameters: { type: "OBJECT", properties: { target: { type: "STRING", description: "primary | secondary | accent | background" }, value: { type: "STRING", description: "CSS color e.g. #D4AF37" } }, required: ["target","value"] } },
-  { name: "add_section",       description: "Add a new content section to the page",                                 parameters: { type: "OBJECT", properties: { type: { type: "STRING", description: "features | testimonials | cta | gallery" }, position: { type: "STRING", description: "after_hero | before_footer" } }, required: ["type"] } },
-  { name: "remove_section",    description: "Remove a section — always asks for confirmation first",                  parameters: { type: "OBJECT", properties: { sectionId: { type: "STRING" } }, required: ["sectionId"] } },
-  { name: "reorder_section",   description: "Move a section up or down — always asks for confirmation first",        parameters: { type: "OBJECT", properties: { sectionId: { type: "STRING" }, direction: { type: "STRING", description: "up | down" } }, required: ["sectionId","direction"] } },
-  { name: "publish_changes",   description: "Publish all draft changes to the live site",                            parameters: { type: "OBJECT", properties: {} } },
-  { name: "undo_edit",         description: "Undo the last edit",                                                     parameters: { type: "OBJECT", properties: {} } },
-  { name: "redo_edit",         description: "Redo the last undone edit",                                              parameters: { type: "OBJECT", properties: {} } },
-]
+  const functions = [
+    { name: "save_memory",
+      description: "Save something to remember about this user for next session",
+      parameters: { type: "OBJECT", properties: {
+        key:   { type: "STRING", description: "short identifier e.g. preferred_name, style_notes, size_preference" },
+        value: { type: "STRING", description: "what to remember about the user" },
+      }, required: ["key", "value"] } },
+    { name: "navigate",                  description: "Navigate to a page in the store",                                      parameters: { type: "OBJECT", properties: { url:      { type: "STRING", description: "/products, /collections, /about" } }, required: ["url"] } },
+    { name: "scroll_page",               description: "Scroll the page up, down, top, or bottom",                             parameters: { type: "OBJECT", properties: { direction: { type: "STRING", description: "up | down | top | bottom" }, amount: { type: "NUMBER" } }, required: ["direction"] } },
+    { name: "add_to_cart",               description: `Add a product to the cart`,                                            parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: ariaTheme.products }, name: { type: "STRING" } }, required: ["slug","name"] } },
+    { name: "open_cart",                 description: "Open the shopping cart",                                               parameters: { type: "OBJECT", properties: {} } },
+    { name: "filter_products",           description: `Filter shop by category`,                                              parameters: { type: "OBJECT", properties: { category: { type: "STRING", description: ariaTheme.categories } }, required: ["category"] } },
+    { name: "start_tour",                description: "Start Aria's guided store tour",                                       parameters: { type: "OBJECT", properties: {} } },
+    { name: "read_cart",                 description: "Read the current cart contents aloud — items, quantities, and total",  parameters: { type: "OBJECT", properties: {} } },
+    { name: "check_stock",               description: "Check if a specific product is in stock",                              parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: ariaTheme.products } }, required: ["slug"] } },
+    { name: "filter_by_price",           description: "Filter shop products by maximum price — use for 'show me items under $X'", parameters: { type: "OBJECT", properties: { maxPrice: { type: "NUMBER", description: "Maximum price in USD e.g. 100" } }, required: ["maxPrice"] } },
+    { name: "describe_current_product",  description: "Describe the product currently shown on the page — name, price, materials, story", parameters: { type: "OBJECT", properties: {} } },
 
-const { aria: ariaTheme, brand } = activeTheme
-const SYSTEM_PROMPT = `You are ${ariaTheme.name}, a voice shopping assistant for ${brand.name} — ${brand.tagline}.
+    // ── Editor-mode functions (only active in /admin/editor) ─────────────────
+    { name: "set_hero_text",     description: "Set the hero headline text",                                             parameters: { type: "OBJECT", properties: { text: { type: "STRING" } }, required: ["text"] } },
+    { name: "set_hero_subtitle", description: "Set the hero subtitle / subline text",                                  parameters: { type: "OBJECT", properties: { text: { type: "STRING" } }, required: ["text"] } },
+    { name: "set_color",         description: "Set a theme color — primary, secondary, accent, or background",          parameters: { type: "OBJECT", properties: { target: { type: "STRING", description: "primary | secondary | accent | background" }, value: { type: "STRING", description: "CSS color e.g. #D4AF37" } }, required: ["target","value"] } },
+    { name: "add_section",       description: "Add a new content section to the page",                                 parameters: { type: "OBJECT", properties: { type: { type: "STRING", description: "features | testimonials | cta | gallery" }, position: { type: "STRING", description: "after_hero | before_footer" } }, required: ["type"] } },
+    { name: "remove_section",    description: "Remove a section — always asks for confirmation first",                  parameters: { type: "OBJECT", properties: { sectionId: { type: "STRING" } }, required: ["sectionId"] } },
+    { name: "reorder_section",   description: "Move a section up or down — always asks for confirmation first",        parameters: { type: "OBJECT", properties: { sectionId: { type: "STRING" }, direction: { type: "STRING", description: "up | down" } }, required: ["sectionId","direction"] } },
+    { name: "publish_changes",   description: "Publish all draft changes to the live site",                            parameters: { type: "OBJECT", properties: {} } },
+    { name: "undo_edit",         description: "Undo the last edit",                                                     parameters: { type: "OBJECT", properties: {} } },
+    { name: "redo_edit",         description: "Redo the last undone edit",                                              parameters: { type: "OBJECT", properties: {} } },
+  ]
+
+  const systemPrompt = `You are ${ariaTheme.name}, a voice shopping assistant for ${brand.name} — ${brand.tagline}.
 
 IMPORTANT CONTEXT: This is a personal demo built by Eyal for his good friend Tal. You are speaking directly to Tal. Keep the tone casual, warm, and genuine — never corporate or stiff.
 
@@ -84,6 +87,9 @@ STRICT SILENCE RULES — follow exactly:
 - describe_current_product: describe the item warmly in 2-3 sentences. Include price and stock status.
 
 When first connected, greet Tal by name — casual and warm. Mention Eyal built this to show him what's possible. Keep it to 2 sentences max, then offer to start the tour or just chat.`
+
+  return { voice: ariaTheme.voice, functions, systemPrompt }
+}
 
 // ── PCM helpers ────────────────────────────────────────────────────────────
 function floatTo16BitPCM(f32: Float32Array): ArrayBuffer {
@@ -357,6 +363,8 @@ export async function ariaConnect() {
   const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY
   if (!apiKey) { toast.error("Aria: API key missing"); return }
 
+  const { voice: ARIA_VOICE, functions: ARIA_FUNCTIONS, systemPrompt: BASE_SYSTEM_PROMPT } = buildAriaConfig(aria().activeThemeId)
+
   aria().setAriaState("connecting")
   _ready = false
   _queue = []
@@ -370,14 +378,14 @@ export async function ariaConnect() {
     _ws = ws
 
     ws.onopen = async () => {
-      let systemPrompt = SYSTEM_PROMPT
+      let systemPrompt = BASE_SYSTEM_PROMPT
       try {
         const memRes = await fetch("/api/aria/memory")
         if (memRes.ok) {
           const { memories } = await memRes.json() as { memories: { key: string; value: string }[] }
           if (memories?.length) {
             const memBlock = "PERSONAL CONTEXT:\n" + memories.map((m) => `- ${m.key}: ${m.value}`).join("\n")
-            systemPrompt = memBlock + "\n\n" + SYSTEM_PROMPT
+            systemPrompt = memBlock + "\n\n" + BASE_SYSTEM_PROMPT
           }
         }
       } catch {

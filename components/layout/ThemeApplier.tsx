@@ -1,9 +1,9 @@
-import { activeTheme } from "@/lib/theme"
+import { getActiveTheme } from "@/lib/getActiveTheme"
 
 // Server component — injects CSS variables into <head> at render time.
 // Values come only from build-time theme config (no user input), so no XSS risk.
-export function ThemeApplier() {
-  const { colors, fonts } = activeTheme
+export async function ThemeApplier() {
+  const { colors, fonts } = await getActiveTheme()
 
   // All values are build-time constants from theme files — safe to inline.
   const lines = [

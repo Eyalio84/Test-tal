@@ -46,4 +46,17 @@ export const bakeryTheme: ThemeConfig = {
     { name: "Kouign-Amann",              slug: "kouign-amann",               description: "Breton butter cake with caramelized sugar crust. Dangerously good.",          price: 9.99,  category: "Pastries",   image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=800&q=80", stockCount: 4  },
     { name: "Seasonal Fruit Tart",        slug: "seasonal-tart",              description: "Crisp pastry shell, vanilla cream, topped with whatever's best today.",      price: 12.99, category: "Seasonal",   image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&q=80", stockCount: 7  },
   ],
+  about: {
+    story: "The Flour Studio opened its doors at 5am on a Tuesday in 2020, with 40 sourdough loaves and a prayer. Our head baker, Claire, trained at a boulangerie in Lyon for three years before returning home with a notebook full of recipes and a deep conviction that bread should take its time. Everything here is made from scratch, the slow way — because that's the only way it tastes right.",
+    values: [
+      { title: "Slow fermentation",  desc: "Our sourdough ferments for 24+ hours. Patience is an ingredient." },
+      { title: "Local first",        desc: "Flour from regional mills, eggs from the farm down the road." },
+      { title: "Zero waste",         desc: "Day-old bread goes to local shelters. Perfect waste for no one." },
+    ],
+    team: [
+      { name: "Claire Beaumont", role: "Head Baker & Founder",  image: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&q=80" },
+      { name: "Raj Patel",       role: "Pastry Chef",           image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80" },
+      { name: "Nina Torres",     role: "Front of House",        image: "https://images.unsplash.com/photo-1489424731084-a5d8b2a2cf7d?w=400&q=80" },
+    ],
+  },
 }

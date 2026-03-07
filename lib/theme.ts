@@ -50,21 +50,32 @@ export interface ThemeConfig {
     categories:  string  // categories for system prompt
   }
   products: ThemeProduct[]
+  about: {
+    story:  string
+    values: Array<{ title: string; desc: string }>
+    team:   Array<{ name: string; role: string; image?: string }>
+  }
 }
 
 // ── Theme registry ─────────────────────────────────────────────────────────
-import { jewelryTheme } from "@/themes/jewelry"
-import { candyTheme }   from "@/themes/candy"
-import { bakeryTheme }  from "@/themes/bakery"
-import { flowersTheme } from "@/themes/flowers"
-import { wineTheme }    from "@/themes/wine"
+import { jewelryTheme }    from "@/themes/jewelry"
+import { candyTheme }      from "@/themes/candy"
+import { bakeryTheme }     from "@/themes/bakery"
+import { flowersTheme }    from "@/themes/flowers"
+import { wineTheme }       from "@/themes/wine"
+import { restaurantTheme } from "@/themes/restaurant"
+import { portfolioTheme }  from "@/themes/portfolio"
+import { saasTheme }       from "@/themes/saas"
 
-const THEMES: Record<string, ThemeConfig> = {
-  jewelry: jewelryTheme,
-  candy:   candyTheme,
-  bakery:  bakeryTheme,
-  flowers: flowersTheme,
-  wine:    wineTheme,
+export const THEMES: Record<string, ThemeConfig> = {
+  jewelry:    jewelryTheme,
+  candy:      candyTheme,
+  bakery:     bakeryTheme,
+  flowers:    flowersTheme,
+  wine:       wineTheme,
+  restaurant: restaurantTheme,
+  portfolio:  portfolioTheme,
+  saas:       saasTheme,
 }
 
 const key = (process.env.NEXT_PUBLIC_THEME ?? "jewelry").toLowerCase()

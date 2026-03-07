@@ -46,4 +46,17 @@ export const flowersTheme: ThemeConfig = {
     { name: "Lavender Bundle",            slug: "lavender-bundle",            description: "Dried lavender bundle, hand-tied. Lasts for months.",                        price: 28.00, category: "Plants",   image: "https://images.unsplash.com/photo-1463936575829-25148e1db1b8?w=800&q=80", stockCount: 25 },
     { name: "Succulent Garden",           slug: "succulent-garden",           description: "Three assorted succulents in a terracotta tray.",                            price: 24.00, category: "Plants",   image: "https://images.unsplash.com/photo-1463936575829-25148e1db1b8?w=800&q=80", stockCount: 18 },
   ],
+  about: {
+    story: "Petal & Stem started as a market stall and grew into the studio it is today — one flower arrangement at a time. Our founder, Isabelle, studied botanical design in Amsterdam before returning home to work with local growers. Every arrangement is made to order; we don't pre-arrange anything overnight. Fresh means fresh.",
+    values: [
+      { title: "Locally grown",       desc: "We source from within 100 miles whenever the season allows." },
+      { title: "No filler flowers",   desc: "Every stem earns its place. No generic carnation padding." },
+      { title: "Emotional intention", desc: "We ask what the occasion is, because flowers carry meaning." },
+    ],
+    team: [
+      { name: "Isabelle Fontaine", role: "Founder & Lead Florist",  image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80" },
+      { name: "Marco Silva",       role: "Grower Relations",        image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80" },
+      { name: "Yuki Tanaka",       role: "Wedding Specialist",      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80" },
+    ],
+  },
 }
