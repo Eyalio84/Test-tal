@@ -80,6 +80,7 @@ export function PricingSection() {
               {/* CTA */}
               <Link
                 href="/dashboard"
+                aria-label={`Get started with ${tier.name}`}
                 className={[
                   "mt-2 block text-center px-4 py-2.5 rounded-md text-sm font-medium transition-colors",
                   tier.highlighted
