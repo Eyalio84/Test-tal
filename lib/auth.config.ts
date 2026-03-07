@@ -8,15 +8,4 @@ export const authConfig: NextAuthConfig = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-  callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      const isAdminRoute = nextUrl.pathname.startsWith("/admin")
-      if (isAdminRoute) {
-        const email = auth?.user?.email
-        return email === process.env.ADMIN_EMAIL
-      }
-      return true
-    },
-  },
-  pages: { signIn: "/api/auth/signin" },
 }
