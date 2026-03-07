@@ -25,8 +25,8 @@ Business model: API proxy (buy Gemini capacity in bulk, resell via subscription 
 | #  | Plan Name                  | Status      | Key Deliverable                                              |
 |----|---------------------------|-------------|--------------------------------------------------------------|
 | 1  | Platform Foundation        | ✅ COMPLETE | Admin guard, Stripe subs+webhook, Aria memory, rate limiting  |
-| 2  | Aria-as-Editor             | NEXT        | Voice editing → SiteContent writes, live preview             |
-| 3  | Theme Pack Polish          | ✅ COMPLETE | Collections/ARIA_FUNCTIONS per-theme, domain images          |
+| 2  | Aria-as-Editor             | ✅ COMPLETE | Voice editing → SiteContent writes, live preview, undo/redo  |
+| 3  | Theme Pack Polish          | ✅ COMPLETE | Runtime theme switching, 8 themes, /themes showcase, /admin/themes |
 | PP | Platform Pivot             | ✅ COMPLETE | /demos showcase, multi-tenant Site model, 3-context Aria, member workspace |
 | ── | **📦 PACKAGE POINT A**     | after P3    | Push: foundation + voice editor + themes baseline            |
 | 4  | Atomic Component Library   | PENDING     | 30-50 components, standard interface, browsable catalog      |
@@ -51,7 +51,7 @@ Business model: API proxy (buy Gemini capacity in bulk, resell via subscription 
 ### Scope
 - [x] Stripe subscriptions: 3 tiers (Basic/Builder/Pro), webhook handler, tier enforcement
 - [x] Per-user Aria memory: AriaMemory table (userId, key, value, updatedAt) — Aria reads on connect + save_memory function
-- [x] Admin-by-email: ADMIN_EMAIL env var, proxy.ts guard, super-admin panel in /admin with gold badge
+- [x] Admin-by-email: ADMIN_EMAIL env var, admin layout server guard, super-admin panel in /admin with gold badge
 - [x] Security: in-memory rate limiting (contact: 5/hr, newsletter: 3/hr), server-side session checks
 - [x] Customer dashboard: /dashboard — tier badge, order stats, subscription CTA, Aria memories panel
 - [x] Schema: WebhookEvent (idempotency), AriaMemory, subscriptionTier/customerId/subscriptionId on User
@@ -65,24 +65,49 @@ Business model: API proxy (buy Gemini capacity in bulk, resell via subscription 
 
 ---
 
-## Plan #2 — Aria-as-Editor (PENDING)
+## Plan #2 — Aria-as-Editor (✅ COMPLETE — 2026-03-07)
 ### Scope
-- [ ] Extend ARIA_FUNCTIONS: set_hero_text, set_color, add_section, remove_section, reorder_section, publish_changes
-- [ ] SiteContent writes: each function call → DB update → revalidatePath()
-- [ ] Live preview: editor shows changes in real-time without full reload
-- [ ] Undo/redo: SiteContent version history (last 10 states)
-- [ ] Aria confirms before destructive changes ("Are you sure you want to delete the hero section?")
+- [x] Extend ARIA_FUNCTIONS: set_hero_text, set_hero_subtitle, set_color, add_section, remove_section, reorder_section, publish_changes, undo, redo
+- [x] SiteContent writes: draft/live split — edits write to draft, publish copies draft→live + revalidatePath
+- [x] Live preview: `/?draft=1` — editor shows draft values in real-time; EditorClient full-page overlay
+- [x] Undo/redo: SiteSnapshot table (max 10 global snapshots), Zustand stack of snapshot IDs, Cmd+Z/Y keyboard shortcuts
+- [x] Aria confirms before destructive changes: ConfirmModal + voice "yes"/"no" via ariaTranscript
+- [x] Editor UI: /admin/editor — EditorClient + EditorToolbar (Undo/Redo/History/Publish/Draft badge)
+- [x] Click-to-edit: inline EditableField components for mouse/touch editing alongside voice
+- [x] Auth: Google OAuth fixed (PrismaAdapter requires lowercase relation fields), proxy.ts redirect loop fixed
+- [x] Upgraded toasts: dark-themed toast system (toastSuccess, toastError, toastPublish, toastUndo)
+- [x] Schema: SiteContent(draft+live+lastEditedBy), SiteSnapshot(id+contentJson+createdAt)
+
+### Architecture locked
+- **Content model:** `SiteContent { id, draft, live, lastEditedBy }` — draft-first, publish copies to live
+- **Undo/redo:** DB-backed SiteSnapshot IDs in Zustand stacks (not full content in memory)
+- **Editor mode gate:** `editorMode: boolean` in Zustand — editor ARIA_FUNCTIONS only active on `/admin/editor`
+- **Auth:** Database sessions (PrismaAdapter) — no JWT-based middleware guards
 
 ---
 
-## Plan #3 — Theme Pack Polish (PENDING)
+## Plan #3 — Theme Pack Polish (✅ COMPLETE — 2026-03-07)
 ### Scope
-- [ ] app/collections/page.tsx: read from activeTheme.collections (currently hardcoded jewelry)
-- [ ] hooks/useAriaLive.ts ARIA_FUNCTIONS: slugs from activeTheme.products (currently hardcoded jewelry)
-- [ ] Domain images: source/generate proper images for candy, bakery, flowers, wine
-- [ ] Theme #6+: restaurant, portfolio, SaaS landing page, agency, gym
-- [ ] Multiple per domain: 2nd jewelry theme (modern/minimal vs vintage/ornate)
-- [ ] Theme preview system: /themes route showing all available packs
+- [x] ThemeConfig: added `about { story, values[], team[] }` field to all 5 existing themes
+- [x] `getActiveTheme()` server helper: reads SiteContent.live 'active_theme' → env var → 'jewelry' fallback
+- [x] app/collections/page.tsx: reads from `getActiveTheme()` — dynamic per-theme collections
+- [x] app/about/page.tsx: reads from `getActiveTheme()` — dynamic story, values, team
+- [x] hooks/useAriaLive.ts: `buildAriaConfig(themeId)` — ARIA_FUNCTIONS + SYSTEM_PROMPT built at connect time from active theme
+- [x] store/aria.ts: `activeThemeId` + `setActiveThemeId` — Zustand tracks active theme
+- [x] Providers.tsx: hydrates `activeThemeId` from server on mount (server → client sync)
+- [x] `app/api/theme/route.ts`: GET current theme, POST switch theme (auth-guarded)
+- [x] ThemeApplier.tsx: switched to `getActiveTheme()` — CSS vars from DB-stored theme
+- [x] 3 new themes: restaurant (Maison Dore), portfolio (Studio Noir), saas (Velo) → 8 total
+- [x] /admin/themes: visual theme switcher — switch live with one click, accent color swatches
+- [x] Admin dashboard: theme shortcut card showing active theme + link to switcher
+- [x] /themes: public showcase of all 8 themes with images and color palettes
+- [x] /themes/[id]: per-theme preview — hero, aria config, colors, story, products sample
+
+### Architecture locked
+- **Runtime switching:** SiteContent key 'active_theme' — switch theme without rebuild
+- **Aria config:** `buildAriaConfig(themeId)` builds ARIA_FUNCTIONS + SYSTEM_PROMPT at connect time
+- **Server→client hydration:** RootLayout reads theme → passes to Providers → `useEffect` sets Zustand
+- **8 themes:** jewelry, candy, bakery, flowers, wine, restaurant, portfolio, saas
 
 ---
 
@@ -129,10 +154,11 @@ Business model: API proxy (buy Gemini capacity in bulk, resell via subscription 
 ## Plan #6 — Visual Editor v1 (PENDING)
 Visual editor lives at /dashboard/editor
 ### Scope
+- [ ] **Inline "Edit Mode" on the running website** — toggle activates an overlay on the live site; clicking any section reveals edit controls in-place; changes go through existing draft→publish flow (Plan #2). This is the "mock look-alike that saves to the actual site" concept.
 - [ ] Drag to place components from palette
 - [ ] Resize handles on selected component
 - [ ] Move (reorder sections via drag)
-- [ ] Click to edit text inline
+- [ ] Click to edit text inline (extends the inline edit mode above)
 - [ ] Property panel (right sidebar): colors, spacing, font size for selected component
 - [ ] Save/publish flow
 
@@ -179,9 +205,9 @@ Visual editor lives at /dashboard/editor
 
 ## Plan #11 — More Theme Packs (ONGOING)
 ### Scope — ongoing across sessions
-- [ ] Restaurant / café
-- [ ] Photography portfolio
-- [ ] SaaS landing page
+- [x] Restaurant / café — Maison Dore (amber, Cormorant, Elise/Aoede)
+- [x] Photography portfolio — Studio Noir (monochrome, Playfair, Noir/Charon)
+- [x] SaaS landing page — Velo (violet, Lexend, Velo/Puck)
 - [ ] Creative agency
 - [ ] Gym / fitness studio
 - [ ] Real estate listings
