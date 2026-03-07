@@ -10,8 +10,6 @@ export type AriaCommand =
   | { type: "ADD_TO_CART";      slug: string; name: string }
   | { type: "OPEN_CART" }
   | { type: "FILTER";           category: string }
-  | { type: "START_TOUR" }
-  | { type: "END_TOUR" }
   | { type: "UNDO" }
   | { type: "REDO" }
   | { type: "PENDING_CONFIRM";  action: string; args: Record<string, unknown> }
@@ -19,14 +17,6 @@ export type AriaCommand =
 export interface PendingConfirm {
   action: string
   args: Record<string, unknown>
-}
-
-export interface TourStep {
-  selector?: string         // CSS selector to spotlight — if absent, no dark overlay (page visible)
-  url?: string              // Navigate here when step is shown
-  title: string
-  description: string
-  narration: string         // What Aria says aloud at this step
 }
 
 interface AriaStore {
@@ -39,11 +29,6 @@ interface AriaStore {
   userTranscript:  string
   ariaTranscript:  string
   currentPage:     string
-
-  // Guided tour
-  isTourActive: boolean
-  tourStep:     number
-  tourSteps:    TourStep[]
 
   // Pending command (consumed by AriaCommandDispatcher)
   pendingCommand: AriaCommand | null
@@ -74,9 +59,6 @@ interface AriaStore {
   setCurrentPage:     (p: string)    => void
   dispatchCommand:    (c: AriaCommand) => void
   clearCommand:       ()             => void
-  startTour:          (steps: TourStep[]) => void
-  nextTourStep:       ()             => void
-  endTour:            ()             => void
 
   // Editor actions
   setEditorMode:      (v: boolean)                   => void
@@ -99,9 +81,6 @@ export const useAria = create<AriaStore>((set, get) => ({
   userTranscript:  "",
   ariaTranscript:  "",
   currentPage:     "/",
-  isTourActive:    false,
-  tourStep:        0,
-  tourSteps:       [],
   pendingCommand:  null,
 
   // Theme
@@ -129,17 +108,6 @@ export const useAria = create<AriaStore>((set, get) => ({
   setCurrentPage:     (currentPage)    => set({ currentPage }),
   dispatchCommand:    (pendingCommand) => set({ pendingCommand }),
   clearCommand:       ()               => set({ pendingCommand: null }),
-
-  startTour: (tourSteps) => set({ isTourActive: true, tourStep: 0, tourSteps }),
-  nextTourStep: () => {
-    const { tourStep, tourSteps } = get()
-    if (tourStep + 1 >= tourSteps.length) {
-      set({ isTourActive: false, tourStep: 0, tourSteps: [] })
-    } else {
-      set({ tourStep: tourStep + 1 })
-    }
-  },
-  endTour: () => set({ isTourActive: false, tourStep: 0, tourSteps: [] }),
 
   // Editor actions
   setEditorMode:   (editorMode)   => set({ editorMode }),

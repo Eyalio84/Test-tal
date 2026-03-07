@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation"
 import { useAria } from "@/store/aria"
 import { useCart } from "@/store/cart"
 import toast from "react-hot-toast"
-import { STORE_TOUR } from "@/lib/ariaTourSteps"
-
 // Invisible component — lives in layout, executes Aria's commands
 export function AriaCommandDispatcher() {
   const router = useRouter()
@@ -58,13 +56,7 @@ export function AriaCommandDispatcher() {
         router.push(`/products?category=${encodeURIComponent(pendingCommand.category)}`)
         break
 
-      case "START_TOUR":
-        useAria.getState().startTour(STORE_TOUR)
-        break
 
-      case "END_TOUR":
-        useAria.getState().endTour()
-        break
     }
   }, [pendingCommand, clearCommand, router, openCart, addItem])
 

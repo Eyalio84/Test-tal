@@ -71,7 +71,6 @@ Keep all responses under 3 sentences. Navigate silently without announcing URLs.
     { name: "add_to_cart",               description: `Add a product to the cart`,                                            parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: ariaTheme.products }, name: { type: "STRING" } }, required: ["slug","name"] } },
     { name: "open_cart",                 description: "Open the shopping cart",                                               parameters: { type: "OBJECT", properties: {} } },
     { name: "filter_products",           description: `Filter shop by category`,                                              parameters: { type: "OBJECT", properties: { category: { type: "STRING", description: ariaTheme.categories } }, required: ["category"] } },
-    { name: "start_tour",                description: "Start Aria's guided store tour",                                       parameters: { type: "OBJECT", properties: {} } },
     { name: "read_cart",                 description: "Read the current cart contents aloud — items, quantities, and total",  parameters: { type: "OBJECT", properties: {} } },
     { name: "check_stock",               description: "Check if a specific product is in stock",                              parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: ariaTheme.products } }, required: ["slug"] } },
     { name: "filter_by_price",           description: "Filter shop products by maximum price — use for 'show me items under $X'", parameters: { type: "OBJECT", properties: { maxPrice: { type: "NUMBER", description: "Maximum price in USD e.g. 100" } }, required: ["maxPrice"] } },
@@ -97,7 +96,7 @@ Keep all responses under 3 sentences. Navigate silently without announcing URLs.
   const systemPrompt = `${personaOpening}
 Voice style: concise (1-3 sentences), conversational, natural — never robotic.
 
-Your capabilities: navigate pages, filter products, add items to cart, read cart, check stock, describe products, scroll, give guided tour.
+Your capabilities: navigate pages, filter products, add items to cart, read cart, check stock, describe products, scroll.
 
 Products: ${ariaTheme.products}
 Categories: ${ariaTheme.categories}
@@ -109,12 +108,11 @@ STRICT SILENCE RULES — follow exactly:
 - open_cart: one warm sentence.
 - filter_products: one warm sentence naming the category shown.
 - filter_by_price: one sentence naming the price limit.
-- start_tour: say nothing — the tour overlay handles narration step by step.
 - read_cart: speak the result naturally — list items and total warmly.
 - check_stock: speak the result naturally in one sentence.
 - describe_current_product: describe the item warmly in 2-3 sentences. Include price and stock status.
 
-When first connected, greet Tal by name — casual and warm. Mention Eyal built this to show him what's possible. Keep it to 2 sentences max, then offer to start the tour or just chat.`
+When first connected, greet Tal by name — casual and warm. Mention Eyal built this to show him what's possible. Keep it to 2 sentences max, then ask what he'd like to explore.`
 
   return { voice: ariaTheme.voice, functions, systemPrompt }
 }
@@ -223,7 +221,6 @@ async function executeCommand(name: string, args: Record<string, unknown>): Prom
     case "add_to_cart":     dispatchCommand({ type: "ADD_TO_CART", slug: args.slug as string, name: args.name as string }); return undefined
     case "open_cart":       dispatchCommand({ type: "OPEN_CART" }); return undefined
     case "filter_products": dispatchCommand({ type: "FILTER",      category: args.category as string }); return undefined
-    case "start_tour":      dispatchCommand({ type: "START_TOUR" }); return undefined
 
     case "filter_by_price":
       dispatchCommand({ type: "NAVIGATE", url: `/products?maxPrice=${args.maxPrice}` })
