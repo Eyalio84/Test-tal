@@ -1,19 +1,20 @@
 import NextAuth from "next-auth"
-import Google from "next-auth/providers/google"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/db"
+import { authConfig } from "./auth.config"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(prisma),
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-  ],
   callbacks: {
-    session({ session, user }) {
+    // NOTE: do NOT spread authConfig.callbacks here — `authorized` is edge-only (proxy.ts)
+    async session({ session, user }) {
       session.user.id = user.id
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { subscriptionTier: true },
+      })
+      session.user.subscriptionTier = dbUser?.subscriptionTier ?? "free"
       return session
     },
   },

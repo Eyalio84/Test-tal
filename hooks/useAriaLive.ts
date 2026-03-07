@@ -29,6 +29,12 @@ const LIVE_MODEL  = "models/gemini-2.5-flash-native-audio-preview-12-2025"
 const ARIA_VOICE  = activeTheme.aria.voice
 
 const ARIA_FUNCTIONS = [
+  { name: "save_memory",
+    description: "Save something to remember about this user for next session",
+    parameters: { type: "OBJECT", properties: {
+      key:   { type: "STRING", description: "short identifier e.g. preferred_name, style_notes, size_preference" },
+      value: { type: "STRING", description: "what to remember about the user" },
+    }, required: ["key", "value"] } },
   { name: "navigate",                  description: "Navigate to a page in the store",                                      parameters: { type: "OBJECT", properties: { url:      { type: "STRING", description: "/products, /collections, /about, /products?category=Rings" } }, required: ["url"] } },
   { name: "scroll_page",               description: "Scroll the page up, down, top, or bottom",                             parameters: { type: "OBJECT", properties: { direction: { type: "STRING", description: "up | down | top | bottom" }, amount: { type: "NUMBER" } }, required: ["direction"] } },
   { name: "add_to_cart",               description: "Add a jewelry product to the cart",                                    parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: "gold-bracelet-set | pearl-drop-earrings | sapphire-statement-ring | diamond-solitaire-pendant | rose-gold-chain-necklace | emerald-stud-earrings | vintage-gold-brooch | sterling-silver-cuff" }, name: { type: "STRING" } }, required: ["slug","name"] } },
@@ -203,6 +209,15 @@ async function executeCommand(name: string, args: Record<string, unknown>): Prom
       return `${p.name} — ${p.description ?? "a handcrafted piece"}. Priced at $${p.price.toFixed(2)}, ${stock}.`
     }
 
+    case "save_memory": {
+      await fetch("/api/aria/memory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: args.key, value: args.value }),
+      })
+      return undefined
+    }
+
     default: return undefined
   }
 }
@@ -237,7 +252,21 @@ export async function ariaConnect() {
     const ws = new WebSocket(`${WS_URL}?key=${apiKey}`)
     _ws = ws
 
-    ws.onopen = () => {
+    ws.onopen = async () => {
+      let systemPrompt = SYSTEM_PROMPT
+      try {
+        const memRes = await fetch("/api/aria/memory")
+        if (memRes.ok) {
+          const { memories } = await memRes.json() as { memories: { key: string; value: string }[] }
+          if (memories?.length) {
+            const memBlock = "PERSONAL CONTEXT:\n" + memories.map((m) => `- ${m.key}: ${m.value}`).join("\n")
+            systemPrompt = memBlock + "\n\n" + SYSTEM_PROMPT
+          }
+        }
+      } catch {
+        // silently skip if memory fetch fails — Aria still works without it
+      }
+
       ws.send(JSON.stringify({
         setup: {
           model: LIVE_MODEL,
@@ -246,7 +275,7 @@ export async function ariaConnect() {
             speech_config: { voice_config: { prebuilt_voice_config: { voice_name: ARIA_VOICE } } },
           },
           input_audio_transcription: {},
-          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          system_instruction: { parts: [{ text: systemPrompt }] },
           tools: [{ function_declarations: ARIA_FUNCTIONS }],
         },
       }))

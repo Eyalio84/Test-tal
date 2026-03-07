@@ -36,6 +36,9 @@ export async function POST(req: NextRequest) {
       quantity: item.quantity,
     }))
 
+    const { auth } = await import("@/lib/auth")
+    const nextAuthSession = await auth()
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
@@ -44,6 +47,7 @@ export async function POST(req: NextRequest) {
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/cancel`,
       metadata: {
         gift_note: giftNote ?? "",
+        userId: nextAuthSession?.user?.id ?? "guest",
       },
     })
 
