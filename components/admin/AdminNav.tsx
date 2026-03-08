@@ -7,6 +7,7 @@ const NAV = [
   { href: "/admin",        label: "Dashboard", icon: "◈" },
   { href: "/admin/themes", label: "Themes",    icon: "🎨" },
   { href: "/admin/editor", label: "Editor",    icon: "✏️" },
+  { href: "/admin/media",  label: "Media",     icon: "🖼️" },
 ]
 
 export function AdminNav() {
