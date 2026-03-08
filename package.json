@@ -9,7 +9,8 @@
     "validate:themes": "tsx scripts/validate-themes.ts",
     "migrate:images": "tsx --env-file=.env.local scripts/migrate-images.ts",
     "validate:themes:strict": "tsx scripts/validate-themes.ts --strict",
-    "upload:approved": "tsx --env-file=.env.local scripts/upload-approved.ts"
+    "upload:approved": "tsx --env-file=.env.local scripts/upload-approved.ts",
+    "scout": "tsx --env-file=.env.local scripts/image-scout.ts"
   },
   "prisma": {
     "seed": "node_modules/.bin/tsx prisma/seed.ts"

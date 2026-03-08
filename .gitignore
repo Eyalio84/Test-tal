@@ -51,3 +51,7 @@ next-env.d.ts
 
 # Git worktrees
 .worktrees/
+
+# Image scout downloads — not committed, uploaded to R2 directly
+media/candidates/
+media/approved/
