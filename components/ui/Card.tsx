@@ -23,24 +23,47 @@ const cardVariants = cva(
   }
 )
 
+export type CardVariant = NonNullable<VariantProps<typeof cardVariants>["variant"]>
+
+// Context lets sub-components (CardHeader/Body/Footer) adapt to the parent variant
+const CardContext = React.createContext<CardVariant>("default")
+
 export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof cardVariants> {}
 
 export function Card({ className, variant, padding, ...props }: CardProps) {
   return (
-    <div
-      data-variant={variant ?? "default"}
-      className={cn(cardVariants({ variant, padding }), className)}
-      {...props}
-    />
+    <CardContext.Provider value={variant ?? "default"}>
+      <div
+        data-variant={variant ?? "default"}
+        className={cn(cardVariants({ variant, padding }), className)}
+        {...props}
+      />
+    </CardContext.Provider>
   )
 }
 
+// Sub-component border colours adapt to the parent variant:
+//   default/shortcut → stone-200 (medium)
+//   stat             → stone-100 (light, matching the stat card aesthetic)
+//   flat             → stone-100
+const headerBorder: Record<CardVariant, string> = {
+  default:  "border-stone-200",
+  stat:     "border-stone-100",
+  shortcut: "border-stone-200",
+  flat:     "border-stone-100",
+}
+
 export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  const variant = React.useContext(CardContext)
   return (
     <div
-      className={cn("px-5 py-3 border-b border-stone-100 text-xs tracking-widest uppercase text-ink/60", className)}
+      className={cn(
+        "px-5 py-3 border-b text-xs tracking-widest uppercase text-ink/60",
+        headerBorder[variant],
+        className
+      )}
       {...props}
     />
   )
@@ -51,9 +74,14 @@ export function CardBody({ className, ...props }: React.HTMLAttributes<HTMLDivEl
 }
 
 export function CardFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  const variant = React.useContext(CardContext)
   return (
     <div
-      className={cn("px-5 py-3 border-t border-stone-100 flex items-center justify-between", className)}
+      className={cn(
+        "px-5 py-3 border-t flex items-center justify-between",
+        headerBorder[variant],
+        className
+      )}
       {...props}
     />
   )

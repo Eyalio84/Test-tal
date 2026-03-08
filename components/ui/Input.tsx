@@ -37,7 +37,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <p id={helperId} className="text-xs text-ink/40">{helper}</p>
         )}
         {error && (
-          <p id={errorId} role="alert" className="text-xs text-red-600">{error}</p>
+          <p id={errorId} role="alert" aria-live="assertive" aria-atomic="true" className="text-xs text-red-600">{error}</p>
         )}
       </div>
     )
@@ -53,7 +53,9 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ id, label, helper, error, className, ...props }, ref) => {
-    const errorId = error ? `${id}-error` : undefined
+    const helperId    = helper ? `${id}-helper` : undefined
+    const errorId     = error  ? `${id}-error`  : undefined
+    const describedBy = [helperId, errorId].filter(Boolean).join(" ") || undefined
     return (
       <div className="flex flex-col gap-1">
         {label && (
@@ -64,13 +66,16 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           ref={ref}
           id={id}
-          aria-describedby={errorId}
+          aria-describedby={describedBy}
           aria-invalid={error ? "true" : undefined}
           className={cn(inputBase, "rounded min-h-[80px] resize-y", className)}
           {...props}
         />
+        {helper && !error && (
+          <p id={helperId} className="text-xs text-ink/40">{helper}</p>
+        )}
         {error && (
-          <p id={errorId} role="alert" className="text-xs text-red-600">{error}</p>
+          <p id={errorId} role="alert" aria-live="assertive" aria-atomic="true" className="text-xs text-red-600">{error}</p>
         )}
       </div>
     )
