@@ -13,7 +13,9 @@
     "scout": "tsx --env-file=.env.local scripts/image-scout.ts",
     "lint": "biome lint .",
     "format": "biome format --write .",
-    "check": "biome check ."
+    "check": "biome check .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "prisma": {
     "seed": "node_modules/.bin/tsx prisma/seed.ts"
@@ -48,6 +50,7 @@
     "@types/sharp": "^0.31.1",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.18"
   }
 }
