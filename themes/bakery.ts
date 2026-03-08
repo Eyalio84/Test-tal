@@ -33,7 +33,7 @@ export const bakeryTheme: ThemeConfig = {
     name:        "Sage",
     voice:       "Charon",
     personality: "warm, nurturing, and knowledgeable about all things baked — like a baker who genuinely loves sharing the craft",
-    products:    "sourdough-boule ($8.50), croissant-box-6 ($14.99), cinnamon-babka ($16.99), chocolate-eclair-4pack ($18.99), almond-croissant ($5.99), pain-au-chocolat ($13.99), kouign-amann ($9.99), seasonal-tart ($12.99)",
+    products:    "sourdough-boule ($8.50), croissant-box-6 ($14.99, Croissant Box), cinnamon-babka ($16.99), chocolate-eclair-4pack ($18.99, Chocolate Éclairs), almond-croissant ($5.99), pain-au-chocolat ($13.99), kouign-amann ($9.99), seasonal-tart ($12.99)",
     categories:  "Breads, Croissants, Cakes, Pastries, Seasonal",
   },
   products: [

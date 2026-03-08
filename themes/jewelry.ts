@@ -33,7 +33,7 @@ export const jewelryTheme: ThemeConfig = {
     name:        "Aria",
     voice:       "Aoede",
     personality: "sophisticated, warm, knowledgeable — like a trusted friend who knows everything about fine jewelry",
-    products:    "gold-bracelet-set ($89), pearl-drop-earrings ($65), sapphire-statement-ring ($245), diamond-solitaire-pendant ($185), rose-gold-chain-necklace ($125), emerald-stud-earrings ($145), vintage-gold-brooch ($75), sterling-silver-cuff ($55)",
+    products:    "gold-bracelet-set ($89, Gold Bracelet Set), pearl-drop-earrings ($65, Pearl Drop Earrings), sapphire-statement-ring ($245, Sapphire Ring), diamond-solitaire-pendant ($185, Diamond Solitaire Pendant), rose-gold-chain-necklace ($125), emerald-stud-earrings ($145), vintage-gold-brooch ($75), sterling-silver-cuff ($55)",
     categories:  "Rings, Necklaces, Earrings, Bracelets, Pendants, Brooches",
   },
   products: [

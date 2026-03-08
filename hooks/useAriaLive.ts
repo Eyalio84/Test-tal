@@ -54,7 +54,7 @@ function buildAriaConfig(themeId: string) {
     const systemPrompt = `You are Aria, the AI assistant powering a web-building platform called StoreKit.
 You help visitors discover what's possible — show them demos, explain how voice editing works,
 and guide them toward signing up. Never be salesy. Be genuinely helpful and curious.
-Available demos: jewelry, candy, bakery, flowers, wine, restaurant, portfolio, saas.
+Available demos: jewelry → "Jewelry Store", candy → "Sweet Drops Candy Shop", bakery → "The Bakery", flowers → "Petal & Stem", wine → "The Cellar", restaurant → "Maison Dore Boutique Restaurant" (also "Maison Dore"), portfolio → "Photographer's Portfolio", saas → "Velo".
 Keep all responses under 3 sentences. Navigate silently without announcing URLs.`
     return { voice: ariaTheme.voice, functions, systemPrompt }
   }
@@ -75,6 +75,24 @@ Keep all responses under 3 sentences. Navigate silently without announcing URLs.
     { name: "check_stock",               description: "Check if a specific product is in stock",                              parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: ariaTheme.products } }, required: ["slug"] } },
     { name: "filter_by_price",           description: "Filter shop products by maximum price — use for 'show me items under $X'", parameters: { type: "OBJECT", properties: { maxPrice: { type: "NUMBER", description: "Maximum price in USD e.g. 100" } }, required: ["maxPrice"] } },
     { name: "describe_current_product",  description: "Describe the product currently shown on the page — name, price, materials, story", parameters: { type: "OBJECT", properties: {} } },
+    { name: "describe_product",
+      description: "Describe any specific product by name — tell the user about it, price, and availability. Use this when the user asks 'tell me about X', 'what is X', 'describe X'.",
+      parameters: { type: "OBJECT", properties: {
+        slug: { type: "STRING", description: ariaTheme.products }
+      }, required: ["slug"] } },
+    { name: "navigate_to_product",
+      description: "Navigate to a specific product's detail page. Use when the user says 'show me X', 'take me to X', 'open X', 'I want to see X'.",
+      parameters: { type: "OBJECT", properties: {
+        slug: { type: "STRING", description: ariaTheme.products }
+      }, required: ["slug"] } },
+    { name: "list_all_products",
+      description: "List all available products with prices. Use when the user asks 'what do you have?', 'show me everything', 'what's on your menu?', 'what are you selling?'",
+      parameters: { type: "OBJECT", properties: {} } },
+    { name: "recommend_product",
+      description: "Recommend a product. Use when the user asks 'what would you recommend?', 'surprise me', 'what's popular?', 'what's your best seller?', 'help me pick something'.",
+      parameters: { type: "OBJECT", properties: {
+        budget: { type: "NUMBER", description: "Optional maximum price hint from the user" }
+      } } },
 
     // ── Editor-mode functions (only active in /admin/editor) ─────────────────
     { name: "set_hero_text",     description: "Set the hero headline text",                                             parameters: { type: "OBJECT", properties: { text: { type: "STRING" } }, required: ["text"] } },
@@ -96,7 +114,7 @@ Keep all responses under 3 sentences. Navigate silently without announcing URLs.
   const systemPrompt = `${personaOpening}
 Voice style: concise (1-3 sentences), conversational, natural — never robotic.
 
-Your capabilities: navigate pages, filter products, add items to cart, read cart, check stock, describe products, scroll.
+Your capabilities: navigate pages, filter products, add items to cart, read cart, check stock, describe any product by name or the current page, list all products, get recommendations, scroll.
 
 Products: ${ariaTheme.products}
 Categories: ${ariaTheme.categories}
@@ -104,6 +122,7 @@ Categories: ${ariaTheme.categories}
 STRICT SILENCE RULES — follow exactly:
 - scroll_page: execute silently. Say NOTHING. Zero words. The page moves — that IS the response.
 - navigate: execute silently. Say NOTHING. The page change is the response.
+- navigate_to_product: execute silently. Say NOTHING.
 - add_to_cart: one warm confirmation sentence only.
 - open_cart: one warm sentence.
 - filter_products: one warm sentence naming the category shown.
@@ -111,6 +130,9 @@ STRICT SILENCE RULES — follow exactly:
 - read_cart: speak the result naturally — list items and total warmly.
 - check_stock: speak the result naturally in one sentence.
 - describe_current_product: describe the item warmly in 2-3 sentences. Include price and stock status.
+- describe_product: describe the product warmly in 2-3 sentences. Include price and stock status.
+- list_all_products: list all products warmly, mention prices naturally.
+- recommend_product: speak your recommendation warmly in 2-3 sentences. Be enthusiastic.
 
 When first connected, greet the user warmly and briefly — 1-2 sentences max — then ask what they'd like to explore.`
 
@@ -264,6 +286,52 @@ async function executeCommand(name: string, args: Record<string, unknown>): Prom
       if (!p?.id) return "I couldn't load the product details."
       const stock = !p.inStock ? "currently out of stock" : (p.stockCount !== null && p.stockCount <= 5) ? `only ${p.stockCount} left` : "in stock"
       return `${p.name} — ${p.description ?? "a handcrafted piece"}. Priced at $${p.price.toFixed(2)}, ${stock}.`
+    }
+
+    case "describe_product": {
+      const slug = args.slug as string
+      if (aria().ariaContext === "demo") {
+        const theme = THEMES[aria().activeThemeId]
+        const p = theme?.products.find(pr => pr.slug === slug)
+        if (!p) return "I don't have a product with that name in my catalog."
+        const stock = p.inStock === false
+          ? "currently out of stock"
+          : (p.stockCount !== undefined && p.stockCount <= 5)
+            ? `only ${p.stockCount} left`
+            : "in stock"
+        return `${p.name} — ${p.description}. Priced at $${p.price.toFixed(2)}, ${stock}.`
+      }
+      const res = await fetch(`/api/product/${slug}`)
+      const p = await res.json()
+      if (!p?.id) return "I couldn't find that product."
+      const stock = !p.inStock ? "currently out of stock"
+        : (p.stockCount !== null && p.stockCount <= 5) ? `only ${p.stockCount} left` : "in stock"
+      return `${p.name} — ${p.description ?? "a handcrafted piece"}. Priced at $${p.price.toFixed(2)}, ${stock}.`
+    }
+
+    case "navigate_to_product":
+      dispatchCommand({ type: "NAVIGATE", url: `/products/${args.slug as string}` })
+      return undefined
+
+    case "list_all_products": {
+      const theme = THEMES[aria().activeThemeId]
+      if (!theme) return "I couldn't load the product catalog."
+      const list = theme.products
+        .map(p => `${p.name} at $${p.price.toFixed(2)}`)
+        .join(", ")
+      return `Here's everything we carry: ${list}.`
+    }
+
+    case "recommend_product": {
+      const theme = THEMES[aria().activeThemeId]
+      if (!theme) return "I couldn't load the products."
+      const budget = args.budget as number | undefined
+      const pool = budget
+        ? theme.products.filter(p => p.price <= budget && p.inStock !== false)
+        : theme.products.filter(p => p.inStock !== false)
+      if (pool.length === 0) return "I don't have any products within that budget right now."
+      const pick = pool[Math.floor(Math.random() * pool.length)]
+      return `I'd recommend the ${pick.name} — ${pick.description} It's $${pick.price.toFixed(2)} and it's one of my favorites.`
     }
 
     case "save_memory": {
