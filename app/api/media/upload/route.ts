@@ -5,6 +5,7 @@ import { r2, R2_BUCKET, r2Key, r2Url } from "@/lib/r2"
 import { prisma } from "@/lib/db"
 import { env } from "@/env"
 import { uploadSchema } from "@/lib/validations"
+import { compressImage } from "@/lib/compress"
 
 const MAX_BYTES = 5 * 1024 * 1024 // 5MB
 
@@ -34,10 +35,9 @@ export async function POST(req: NextRequest) {
   }
   const { themeId, slot, alt } = parsed.data
 
-  const contentType = file.type || "image/jpeg"
-  const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg"
-  const key = r2Key(themeId, slot, ext)
-  const buffer = Buffer.from(await file.arrayBuffer())
+  const rawBuffer = Buffer.from(await file.arrayBuffer())
+  const { buffer, contentType } = await compressImage(rawBuffer)
+  const key = r2Key(themeId, slot, "webp")  // always webp after compression
 
   await r2.send(new PutObjectCommand({
     Bucket:       R2_BUCKET,

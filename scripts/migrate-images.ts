@@ -9,6 +9,7 @@
  */
 import "dotenv/config"
 import { PutObjectCommand } from "@aws-sdk/client-s3"
+import sharp from "sharp"
 import { r2, R2_BUCKET, r2Key, r2Url } from "../lib/r2"
 import { THEMES } from "../lib/theme"
 import { prisma } from "../lib/db"
@@ -23,10 +24,12 @@ async function fetchImageBuffer(url: string): Promise<{ buffer: Buffer; contentT
   return { buffer, contentType }
 }
 
-function extFromContentType(ct: string): string {
-  if (ct.includes("png"))  return "png"
-  if (ct.includes("webp")) return "webp"
-  return "jpg"
+async function compressBuffer(buffer: Buffer): Promise<{ buffer: Buffer; contentType: string }> {
+  const compressed = await sharp(buffer)
+    .resize(800, undefined, { fit: "inside", withoutEnlargement: true })
+    .webp({ quality: 80 })
+    .toBuffer()
+  return { buffer: compressed, contentType: "image/webp" }
 }
 
 async function uploadSlot(themeId: string, slot: string, imageUrl: string, alt = ""): Promise<"uploaded" | "skipped"> {
@@ -40,9 +43,9 @@ async function uploadSlot(themeId: string, slot: string, imageUrl: string, alt =
   }
 
   console.log(`  ↑  upload ${themeId}/${slot}`)
-  const { buffer, contentType } = await fetchImageBuffer(imageUrl)
-  const ext = extFromContentType(contentType)
-  const key = r2Key(themeId, slot, ext)
+  const { buffer: rawBuffer } = await fetchImageBuffer(imageUrl)
+  const { buffer, contentType } = await compressBuffer(rawBuffer)
+  const key = r2Key(themeId, slot, "webp")  // always webp
 
   await r2.send(new PutObjectCommand({
     Bucket:      R2_BUCKET,
