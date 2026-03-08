@@ -23,6 +23,7 @@ export function DataTable<TData>({
 }: DataTableProps<TData>) {
   const [sorting,       setSorting]       = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [sortAnnouncement, setSortAnnouncement] = React.useState("")
 
   const table = useReactTable({
     data,
@@ -52,7 +53,15 @@ export function DataTable<TData>({
                       header.column.getIsSorted() === "desc" ? "descending" : undefined
                     }
                     className="text-left text-xs tracking-widest uppercase text-ink/40 pb-3 pr-6 border-b border-stone-100 cursor-pointer select-none whitespace-nowrap"
-                    onClick={header.column.getToggleSortingHandler()}
+                    onClick={(e) => {
+                      header.column.getToggleSortingHandler()?.(e)
+                      const next = header.column.getIsSorted() === "asc" ? "descending" :
+                                   header.column.getIsSorted() === "desc" ? "none" : "ascending"
+                      const label = typeof header.column.columnDef.header === "string"
+                        ? header.column.columnDef.header
+                        : header.column.id
+                      setSortAnnouncement(next === "none" ? `${label} sort cleared` : `Sorted by ${label}, ${next}`)
+                    }}
                   >
                     {header.isPlaceholder ? null : (
                       <span className="inline-flex items-center gap-1">
@@ -87,6 +96,9 @@ export function DataTable<TData>({
           </tbody>
         </table>
       </div>
+
+      {/* Screen reader sort announcement */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">{sortAnnouncement}</div>
 
       {/* Pagination */}
       {table.getPageCount() > 1 && (

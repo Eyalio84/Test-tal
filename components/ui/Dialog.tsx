@@ -86,11 +86,25 @@ export function DialogContent({ children, className }: { children: React.ReactNo
     }
   }, [open])
 
-  // Body scroll lock
+  // Body scroll lock + inert on background siblings (Safari VoiceOver aria-modal fix)
   React.useEffect(() => {
-    if (open) document.body.style.overflow = "hidden"
-    else document.body.style.overflow = ""
-    return () => { document.body.style.overflow = "" }
+    if (open) {
+      document.body.style.overflow = "hidden"
+      // Set inert on all direct body children except the portal root (contentRef's ancestor)
+      const siblings = Array.from(document.body.children) as HTMLElement[]
+      siblings.forEach(el => {
+        if (!el.contains(contentRef.current)) el.inert = true
+      })
+    } else {
+      document.body.style.overflow = ""
+      const siblings = Array.from(document.body.children) as HTMLElement[]
+      siblings.forEach(el => { el.inert = false })
+    }
+    return () => {
+      document.body.style.overflow = ""
+      const siblings = Array.from(document.body.children) as HTMLElement[]
+      siblings.forEach(el => { el.inert = false })
+    }
   }, [open])
 
   if (!open) return null
