@@ -80,3 +80,18 @@ export const THEMES: Record<string, ThemeConfig> = {
 
 const key = (process.env.NEXT_PUBLIC_THEME ?? "jewelry").toLowerCase()
 export const activeTheme: ThemeConfig = THEMES[key] ?? jewelryTheme
+
+// ── Dev-only: warn on duplicate product images within a theme ───────────────
+if (process.env.NODE_ENV === "development") {
+  for (const theme of Object.values(THEMES)) {
+    const seen = new Set<string>()
+    for (const product of theme.products) {
+      if (seen.has(product.image)) {
+        console.warn(
+          `[theme:${theme.id}] Duplicate product image URL on "${product.name}": ${product.image}`
+        )
+      }
+      seen.add(product.image)
+    }
+  }
+}
