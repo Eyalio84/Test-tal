@@ -42,7 +42,7 @@ export function Providers({ children, activeThemeId }: ProvidersProps) {
         />
       </SessionProvider>
       {/* Dev-only query inspector — disappears in production builds */}
-      <ReactQueryDevtools initialIsOpen={false} />
+      <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-left" />
     </QueryClientProvider>
   )
 }
