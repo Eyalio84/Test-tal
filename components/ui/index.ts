@@ -9,3 +9,4 @@ export { EmptyState, ErrorState, type EmptyStateProps, type EmptyStateVariant } 
 export { Card, CardHeader, CardBody, CardFooter, type CardProps } from "./Card"
 export { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "./Dialog"
 export { Tabs, TabList, Tab, TabPanel } from "./Tabs"
+export { DataTable } from "./DataTable"
