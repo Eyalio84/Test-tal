@@ -7,7 +7,7 @@ export type AriaState = "idle" | "connecting" | "listening" | "thinking" | "spea
 export type AriaCommand =
   | { type: "NAVIGATE";         url: string }
   | { type: "SCROLL";           direction: "up" | "down" | "top" | "bottom"; amount?: number }
-  | { type: "ADD_TO_CART";      slug: string; name: string }
+  | { type: "ADD_TO_CART";      slug: string; name: string; price?: number; image?: string }
   | { type: "OPEN_CART" }
   | { type: "FILTER";           category: string }
   | { type: "UNDO" }

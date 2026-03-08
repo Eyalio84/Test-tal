@@ -30,7 +30,19 @@ export function AriaCommandDispatcher() {
         break
 
       case "ADD_TO_CART":
-        // Fetch product details then add — if product data unavailable, show a note
+        // Demo products: data is embedded in the command — no DB fetch needed
+        if (pendingCommand.price !== undefined) {
+          addItem({
+            id:    pendingCommand.slug,
+            name:  pendingCommand.name,
+            price: pendingCommand.price,
+            slug:  pendingCommand.slug,
+            image: pendingCommand.image ?? "",
+          })
+          toast.success(`${pendingCommand.name} added to cart`)
+          break
+        }
+        // Member products: fetch from DB
         fetch(`/api/product/${pendingCommand.slug}`)
           .then((r) => r.json())
           .then((product) => {
@@ -40,7 +52,7 @@ export function AriaCommandDispatcher() {
                 name:  product.name,
                 price: product.price,
                 slug:  product.slug,
-                image: product.images ? JSON.parse(product.images)[0] ?? null : null,
+                image: product.images ? JSON.parse(product.images)[0] ?? "" : "",
               })
               toast.success(`${product.name} added to cart`)
             }

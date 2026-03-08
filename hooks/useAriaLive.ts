@@ -218,7 +218,20 @@ async function executeCommand(name: string, args: Record<string, unknown>): Prom
     case "explain_pricing": return "StoreKit has three tiers: Starter is free and lets you build with Aria. Builder at $29/month adds a custom domain and priority support. Pro at $79/month adds team members, analytics, and advanced AI editing. All plans include Aria voice control."
     case "navigate":        dispatchCommand({ type: "NAVIGATE",    url: args.url as string }); return undefined
     case "scroll_page":     dispatchCommand({ type: "SCROLL",      direction: args.direction as "up"|"down"|"top"|"bottom", amount: (args.amount as number) ?? 400 }); return undefined
-    case "add_to_cart":     dispatchCommand({ type: "ADD_TO_CART", slug: args.slug as string, name: args.name as string }); return undefined
+    case "add_to_cart": {
+      const slug = args.slug as string
+      const name = args.name as string
+      if (aria().ariaContext === "demo") {
+        const theme = THEMES[aria().activeThemeId]
+        const product = theme?.products.find(p => p.slug === slug)
+        if (product) {
+          dispatchCommand({ type: "ADD_TO_CART", slug, name: product.name, price: product.price, image: product.image })
+          return undefined
+        }
+      }
+      dispatchCommand({ type: "ADD_TO_CART", slug, name })
+      return undefined
+    }
     case "open_cart":       dispatchCommand({ type: "OPEN_CART" }); return undefined
     case "filter_products": dispatchCommand({ type: "FILTER",      category: args.category as string }); return undefined
 
