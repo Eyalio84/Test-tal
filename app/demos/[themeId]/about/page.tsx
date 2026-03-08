@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import Image from "next/image"
 import { THEMES } from "@/lib/theme"
+import { resolveTheme } from "@/lib/themeImages"
 
 export async function generateStaticParams() {
   return Object.keys(THEMES).map((id) => ({ themeId: id }))
@@ -8,7 +9,7 @@ export async function generateStaticParams() {
 
 export default async function DemoAboutPage({ params }: { params: Promise<{ themeId: string }> }) {
   const { themeId } = await params
-  const theme = THEMES[themeId]
+  const theme = await resolveTheme(themeId).catch(() => null)
   if (!theme) notFound()
 
   const { about } = theme
