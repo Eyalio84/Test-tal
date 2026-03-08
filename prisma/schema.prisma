@@ -133,6 +133,19 @@ model AriaMemory {
   @@unique([userId, key])
 }
 
+model ThemeImage {
+  id        String   @id @default(cuid())
+  themeId   String   // e.g. "jewelry" | "candy" | "bakery" ...
+  slot      String   // "hero" | product slug e.g. "gold-bracelet-set"
+  r2Key     String   // object key in R2 bucket e.g. "themes/jewelry/gold-bracelet-set.jpg"
+  url       String   // full public CDN URL
+  alt       String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([themeId, slot])
+}
+
 model WebhookEvent {
   id          String   @id
   type        String
