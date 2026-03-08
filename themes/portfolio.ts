@@ -2,9 +2,9 @@ import type { ThemeConfig } from "@/lib/theme"
 
 export const portfolioTheme: ThemeConfig = {
   id: "portfolio",
-  brand:  { name: "Studio Noir", tagline: "Visual stories worth telling" },
+  brand:  { name: "Photographer's Portfolio", tagline: "Visual stories worth telling" },
   meta: {
-    title:       "Studio Noir — Photography & Visual Direction",
+    title:       "Photographer's Portfolio — Photography & Visual Direction",
     description: "Award-winning commercial photography, editorial direction, and fine-art prints.",
   },
   colors: {

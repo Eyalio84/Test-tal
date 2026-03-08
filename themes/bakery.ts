@@ -2,10 +2,10 @@ import type { ThemeConfig } from "@/lib/theme"
 
 export const bakeryTheme: ThemeConfig = {
   id: "bakery",
-  brand:  { name: "The Flour Studio", tagline: "Baked with love, every morning" },
+  brand:  { name: "The Bakery", tagline: "Baked with love, every morning" },
   meta: {
-    title:       "The Flour Studio — Artisan Bakery",
-    description: "Fresh artisan bread, pastries, and cakes baked daily. Order online for same-day pickup.",
+    title:       "The Bakery — Artisan Bakery",
+    description: "Fresh artisan bread, pastries, and cakes baked daily at The Bakery. Order online for same-day pickup.",
   },
   colors: {
     accent:      "#92400E",
@@ -38,9 +38,9 @@ export const bakeryTheme: ThemeConfig = {
   },
   products: [
     { name: "Sourdough Boule",            slug: "sourdough-boule",            description: "Classic 24-hour fermented sourdough. Crispy crust, open crumb.",             price: 8.50,  category: "Breads",     image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=80", stockCount: 12 },
-    { name: "Croissant Box (6)",          slug: "croissant-box-6",            description: "Six buttery, laminated croissants. Baked fresh each morning.",                price: 14.99, category: "Croissants", image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&q=80", stockCount: 8  },
+    { name: "Croissant Box",              slug: "croissant-box-6",            description: "Six buttery, laminated croissants. Baked fresh each morning.",                price: 14.99, category: "Croissants", image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&q=80", stockCount: 8  },
     { name: "Cinnamon Babka",             slug: "cinnamon-babka",             description: "Swirled cinnamon babka on a brioche base. Serves 8.",                         price: 16.99, category: "Cakes",      image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=800&q=80", stockCount: 5  },
-    { name: "Chocolate Éclairs (4)",      slug: "chocolate-eclair-4pack",     description: "Four classic éclairs with vanilla cream and dark chocolate glaze.",           price: 18.99, category: "Pastries",   image: "https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=800&q=80", stockCount: 6  },
+    { name: "Chocolate Éclairs",          slug: "chocolate-eclair-4pack",     description: "Four classic éclairs with vanilla cream and dark chocolate glaze.",           price: 18.99, category: "Pastries",   image: "https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=800&q=80", stockCount: 6  },
     { name: "Almond Croissant",           slug: "almond-croissant",           description: "Twice-baked croissant filled with frangipane, topped with flaked almonds.",   price: 5.99,  category: "Croissants", image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&q=80", stockCount: 10 },
     { name: "Pain au Chocolat (4)",       slug: "pain-au-chocolat",           description: "Four chocolate croissants with two dark chocolate batons each.",              price: 13.99, category: "Croissants", image: "https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=800&q=80", stockCount: 8  },
     { name: "Kouign-Amann",              slug: "kouign-amann",               description: "Breton butter cake with caramelized sugar crust. Dangerously good.",          price: 9.99,  category: "Pastries",   image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=800&q=80", stockCount: 4  },

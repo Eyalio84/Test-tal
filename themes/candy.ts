@@ -2,7 +2,7 @@ import type { ThemeConfig } from "@/lib/theme"
 
 export const candyTheme: ThemeConfig = {
   id: "candy",
-  brand:  { name: "Sweet Drops", tagline: "Candy for every occasion" },
+  brand:  { name: "Sweet Drops Candy Shop", tagline: "Candy for every occasion" },
   meta: {
     title:       "Sweet Drops — Bulk Candy & Sweets",
     description: "Bulk candy, party favors, and gourmet sweets. Shop by color, flavor, or occasion.",

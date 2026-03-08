@@ -2,7 +2,7 @@ import type { ThemeConfig } from "@/lib/theme"
 
 export const restaurantTheme: ThemeConfig = {
   id: "restaurant",
-  brand:  { name: "Maison Dore", tagline: "Where every table tells a story" },
+  brand:  { name: "Maison Dore Boutique Restaurant", tagline: "Where every table tells a story" },
   meta: {
     title:       "Maison Dore — Fine Dining & Private Events",
     description: "Seasonal French-Mediterranean cuisine in an intimate setting. Reserve your table.",
