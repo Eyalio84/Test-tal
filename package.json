@@ -10,7 +10,10 @@
     "migrate:images": "tsx --env-file=.env.local scripts/migrate-images.ts",
     "validate:themes:strict": "tsx scripts/validate-themes.ts --strict",
     "upload:approved": "tsx --env-file=.env.local scripts/upload-approved.ts",
-    "scout": "tsx --env-file=.env.local scripts/image-scout.ts"
+    "scout": "tsx --env-file=.env.local scripts/image-scout.ts",
+    "lint":   "biome lint .",
+    "format": "biome format --write .",
+    "check":  "biome check ."
   },
   "prisma": {
     "seed": "node_modules/.bin/tsx prisma/seed.ts"
@@ -35,6 +38,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.6",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
