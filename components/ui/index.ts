@@ -3,3 +3,4 @@
 export { Button, buttonVariants, type ButtonProps } from "./Button"
 export { Slot } from "./Slot"
 export { Badge, CountBadge, type BadgeProps } from "./Badge"
+export { Input, Textarea, type InputProps, type TextareaProps } from "./Input"
