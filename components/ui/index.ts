@@ -1,14 +1,22 @@
 // Atomic component library — barrel export
 // Add each component as implemented
-export { Button, buttonVariants, type ButtonProps } from "./Button"
-export { Slot } from "./Slot"
-export { Badge, CountBadge, type BadgeProps } from "./Badge"
-export { Input, Textarea, type InputProps, type TextareaProps } from "./Input"
-export { Skeleton, Spinner } from "./Skeleton"
-export { EmptyState, ErrorState, type EmptyStateProps, type EmptyStateVariant } from "./EmptyState"
-export { Card, CardHeader, CardBody, CardFooter, type CardProps } from "./Card"
-export { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "./Dialog"
-export { Tabs, TabList, Tab, TabPanel } from "./Tabs"
-export { DataTable } from "./DataTable"
+
+export { Badge, type BadgeProps, CountBadge } from "./Badge"
 export { Breadcrumb, BreadcrumbItem, BreadcrumbSeparator } from "./Breadcrumb"
-export { Select, type SelectProps, type SelectOption } from "./Select"
+export { Button, type ButtonProps, buttonVariants } from "./Button"
+export { Card, CardBody, CardFooter, CardHeader, type CardProps } from "./Card"
+export { DataTable } from "./DataTable"
+export {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+  DialogTrigger,
+} from "./Dialog"
+export { EmptyState, type EmptyStateProps, type EmptyStateVariant, ErrorState } from "./EmptyState"
+export { Input, type InputProps, Textarea, type TextareaProps } from "./Input"
+export { Select, type SelectOption, type SelectProps } from "./Select"
+export { Skeleton, Spinner } from "./Skeleton"
+export { Slot } from "./Slot"
+export { Tab, TabList, TabPanel, Tabs } from "./Tabs"

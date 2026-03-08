@@ -2,17 +2,26 @@ import * as React from "react"
 import { cn } from "@/lib/cn"
 
 interface SkeletonProps {
-  width?: string   // Tailwind width class e.g. "w-48"
-  height?: string  // Tailwind height class e.g. "h-4"
+  width?: string // Tailwind width class e.g. "w-48"
+  height?: string // Tailwind height class e.g. "h-4"
   className?: string
   rounded?: "none" | "sm" | "base" | "lg" | "full"
 }
 
 const radiusMap = {
-  none: "", sm: "rounded-sm", base: "rounded", lg: "rounded-lg", full: "rounded-full"
+  none: "",
+  sm: "rounded-sm",
+  base: "rounded",
+  lg: "rounded-lg",
+  full: "rounded-full",
 }
 
-export function Skeleton({ width = "w-full", height = "h-4", rounded = "base", className }: SkeletonProps) {
+export function Skeleton({
+  width = "w-full",
+  height = "h-4",
+  rounded = "base",
+  className,
+}: SkeletonProps) {
   return (
     <div
       role="status"
@@ -40,7 +49,14 @@ export function Spinner({ label = "Loading...", size = "md", className }: Spinne
         fill="none"
         viewBox="0 0 24 24"
       >
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        />
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
       </svg>
     </span>

@@ -1,7 +1,7 @@
 "use client"
 import * as React from "react"
-import { cn } from "@/lib/cn"
 import { Slot } from "@/components/ui/Slot"
+import { cn } from "@/lib/cn"
 
 interface DialogContextValue {
   open: boolean
@@ -42,27 +42,38 @@ export function Dialog({
   }
 
   return (
-    <DialogContext.Provider value={{
-      open, setOpen,
-      titleId: `dialog-title-${id.current}`,
-      descId:  `dialog-desc-${id.current}`,
-    }}>
+    <DialogContext.Provider
+      value={{
+        open,
+        setOpen,
+        titleId: `dialog-title-${id.current}`,
+        descId: `dialog-desc-${id.current}`,
+      }}
+    >
       {children}
     </DialogContext.Provider>
   )
 }
 
-export function DialogTrigger({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) {
+export function DialogTrigger({
+  children,
+  asChild,
+}: {
+  children: React.ReactNode
+  asChild?: boolean
+}) {
   const { setOpen } = useDialog()
   const Comp = asChild ? Slot : "button"
-  return (
-    <Comp onClick={() => setOpen(true)}>
-      {children}
-    </Comp>
-  )
+  return <Comp onClick={() => setOpen(true)}>{children}</Comp>
 }
 
-export function DialogContent({ children, className }: { children: React.ReactNode; className?: string }) {
+export function DialogContent({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   const { open, setOpen, titleId, descId } = useDialog()
   const contentRef = React.useRef<HTMLDivElement>(null)
 
@@ -92,18 +103,22 @@ export function DialogContent({ children, className }: { children: React.ReactNo
       document.body.style.overflow = "hidden"
       // Set inert on all direct body children except the portal root (contentRef's ancestor)
       const siblings = Array.from(document.body.children) as HTMLElement[]
-      siblings.forEach(el => {
+      siblings.forEach((el) => {
         if (!el.contains(contentRef.current)) el.inert = true
       })
     } else {
       document.body.style.overflow = ""
       const siblings = Array.from(document.body.children) as HTMLElement[]
-      siblings.forEach(el => { el.inert = false })
+      siblings.forEach((el) => {
+        el.inert = false
+      })
     }
     return () => {
       document.body.style.overflow = ""
       const siblings = Array.from(document.body.children) as HTMLElement[]
-      siblings.forEach(el => { el.inert = false })
+      siblings.forEach((el) => {
+        el.inert = false
+      })
     }
   }, [open])
 
@@ -126,12 +141,15 @@ export function DialogContent({ children, className }: { children: React.ReactNo
         aria-describedby={descId}
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
       >
-        <div className={cn(
-          "relative bg-white rounded-lg shadow-2xl border border-stone-200 w-full max-w-md p-8",
-          className
-        )}>
+        <div
+          className={cn(
+            "relative bg-white rounded-lg shadow-2xl border border-stone-200 w-full max-w-md p-8",
+            className
+          )}
+        >
           {children}
           <button
+            type="button"
             onClick={() => setOpen(false)}
             aria-label="Close dialog"
             className="absolute top-4 right-4 text-ink/40 hover:text-ink transition p-1 rounded"
@@ -155,19 +173,23 @@ export function DialogTitle({ className, id, ...props }: React.HTMLAttributes<HT
   )
 }
 
-export function DialogDescription({ className, id, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+export function DialogDescription({
+  className,
+  id,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
   const { descId } = useDialog()
-  return (
-    <p
-      id={id ?? descId}
-      className={cn("text-sm text-ink/60 mb-6", className)}
-      {...props}
-    />
-  )
+  return <p id={id ?? descId} className={cn("text-sm text-ink/60 mb-6", className)} {...props} />
 }
 
 export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("flex items-center justify-end gap-3 mt-6 pt-4 border-t border-stone-100", className)} {...props} />
+    <div
+      className={cn(
+        "flex items-center justify-end gap-3 mt-6 pt-4 border-t border-stone-100",
+        className
+      )}
+      {...props}
+    />
   )
 }

@@ -1,6 +1,6 @@
 # Master Roadmap — Voice-AI Website Builder Platform
 # Status tracker across all plan-mode / implementation sessions
-# Last updated: 2026-03-07
+# Last updated: 2026-03-08
 
 ---
 
@@ -28,6 +28,7 @@ Business model: API proxy (buy Gemini capacity in bulk, resell via subscription 
 | 2  | Aria-as-Editor             | ✅ COMPLETE | Voice editing → SiteContent writes, live preview, undo/redo  |
 | 3  | Theme Pack Polish          | ✅ COMPLETE | Runtime theme switching, 8 themes, /themes showcase, /admin/themes |
 | PP | Platform Pivot             | ✅ COMPLETE | /demos showcase, multi-tenant Site model, 3-context Aria, member workspace |
+| DI | **Development Infrastructure** | ✅ COMPLETE (2026-03-08) | Private CDN, 7 dev tools, 55 tests, storekit-planner plugin |
 | ── | **📦 PACKAGE POINT A**     | after P3    | Push: foundation + voice editor + themes baseline            |
 | 4  | Atomic Component Library   | PENDING     | 30-50 components, standard interface, browsable catalog      |
 | 5  | Page Layout Library        | PENDING     | 10-15 blank layouts, blank canvas mode                       |
@@ -123,6 +124,59 @@ Business model: API proxy (buy Gemini capacity in bulk, resell via subscription 
 - [x] Aria three-context persona: platform guide / demo store / member builder
 - [x] Platform footer + context-aware ShippingBanner
 - [x] ariaContext Zustand field + setAriaContext action
+
+---
+
+## Development Infrastructure (✅ COMPLETE — 2026-03-08)
+
+This is not a product feature — it is the tooling layer that makes all future development
+safer, faster, and measurably more cost-efficient. Completed in a single session.
+
+### Private CDN — Cloudflare R2
+- [x] All 72 theme image slots migrated from ephemeral Unsplash URLs to permanent Cloudflare R2
+- [x] 6 broken Unsplash 404s replaced with verified Pexels CDN URLs
+- [x] `scripts/migrate-images.ts` — resilient migration script with force flag and counter fix
+- [x] `lib/r2.ts` — `r2Key()` / `r2Url()` helpers, env.ts-backed config
+- [x] `resolveTheme()` — DB `ThemeImage` records override static fallbacks at runtime
+- [x] `next.config.ts` — Pexels + `*.r2.dev` added to Next.js `remotePatterns`
+- **Why it matters:** Unsplash photo IDs can be deleted by their authors at any time.
+  Every image on the platform now lives on infrastructure we control, at a permanent URL,
+  compressed to WebP, cached with immutable headers. No external dependency on image hosting.
+
+### Development Tooling Layer (7 tools)
+All installed, configured, tested, and documented in `docs/tools/`.
+
+| Tool | Purpose | Key file |
+|------|---------|---------|
+| @t3-oss/env-nextjs | Type-safe env vars validated with Zod at startup | `env.ts` |
+| Zod | API input validation — all routes validated before DB touch | `lib/validations.ts` |
+| Biome v2 | Linter + formatter replacing ESLint + Prettier | `biome.json` |
+| Sharp | WebP compression before every R2 upload | `lib/compress.ts` |
+| Sentry | Error monitoring — automatic in prod, disabled in dev | `sentry.*.config.ts` |
+| Vitest | Unit test runner — 55/55 tests passing | `tests/lib/*.test.ts` |
+| TanStack Query | Server state — admin media page migrated from manual fetch | `app/admin/media/page.tsx` |
+
+- [x] `CLAUDE.md` — project conventions, tool index, pre/post launch checklist
+- [x] `docs/tools/` — 8 reference docs (README + one per tool + image-scout)
+- [x] 55 passing tests: `r2.test.ts`, `theme.test.ts`, `compress.test.ts`
+- [x] TypeScript clean: `npx tsc --noEmit` passes
+
+### storekit-planner Plugin (Claude Code enhancement)
+This is tooling for the development workflow — not part of the StoreKit app.
+Lives at `~/.claude/plugins/marketplaces/storekit-planner/`.
+
+- [x] **Phase 1:** `haiku-benchmark` skill — 5-tier capability benchmark for Haiku 4.5
+- [x] **Benchmark result:** 5/5 tiers PASS. Haiku 4.5 handles cross-file reasoning
+  and architectural decisions that were originally assumed to be Sonnet-only territory.
+  Full report: `.claude/plans/haiku_benchmark_20260308T162709Z.md`
+- [x] **Phase 2:** `sp-plan` skill, `hybrid-execute` skill, `storekit-scout` agent,
+  `/sp-plan` command, `docs/generalization-guide.md`
+- [x] Plugin v2.0.0 — smoke test PASS (7/7 tasks)
+
+**Why it matters:** Every future implementation plan is now written by a scout-first
+workflow that labels each task with an evidence-based `model-hint: haiku|sonnet`.
+Cross-file reasoning tasks (previously Sonnet) are now Haiku → ~4x cheaper and faster
+for the majority of tasks in any planning workflow.
 
 ---
 
@@ -267,7 +321,22 @@ Visual editor lives at /dashboard/editor
 - NEXT_PUBLIC_THEME env var for build-time theme selection
 - Admin guard: ADMIN_EMAIL env var, enforced in Next.js middleware + API routes
 
-## Model Usage Policy (cost optimization)
-- claude-haiku-4-5: CRUD routes, seed scripts, type generation, simple utils, boilerplate
-- claude-sonnet-4-6: architecture, Aria integration, security, complex UI, decisions
-- Gemini 2.5 Flash: bulk content generation (theme copy, product descriptions)
+## Model Usage Policy (empirically calibrated 2026-03-08)
+
+Haiku 4.5 was benchmarked against real StoreKit code across 5 capability tiers.
+All 5 tiers passed. The policy below reflects that data, not marketing claims.
+Full evidence: `.claude/plans/haiku_benchmark_20260308T162709Z.md`
+Full guide: `~/.claude/plugins/marketplaces/storekit-planner/docs/generalization-guide.md`
+
+| Task class | Model | Basis |
+|-----------|-------|-------|
+| File search, glob, grep, count | **Haiku** | T1: 4/4 benchmark |
+| Single-file edit (fully specified) | **Haiku** | T2: 6/6, tsc clean |
+| Test generation (+ "use static imports" note) | **Haiku** | T3: logic PASS, style caveat |
+| Cross-file execution trace | **Haiku** | T4: exceeded expectations |
+| Architectural trade-off Q&A | **Haiku** | T5: senior-review quality |
+| CRUD routes, seed scripts, boilerplate | **Haiku** | T1-T2 class |
+| Writing implementation plans (this skill itself) | **Sonnet** | Meta-level, untested |
+| Architecture decisions, Aria integration, security | **Sonnet** | Judgment + implicit context |
+| Ambiguous open-ended design docs | **Sonnet** | No reference structure |
+| Bulk content generation (theme copy, product descriptions) | **Gemini 2.5 Flash** | Cost + speed |

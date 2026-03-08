@@ -2,25 +2,27 @@
 // Used by buildAriaConfig() to inform Aria of available components.
 
 export interface ComponentEntry {
-  name:        string   // Aria-speakable name
-  path:        string   // import path
-  description: string   // what it does in one sentence
-  variants?:   string[] // available variants
-  ariaTrigger: string   // phrase Aria uses to reference this component
+  name: string // Aria-speakable name
+  path: string // import path
+  description: string // what it does in one sentence
+  variants?: string[] // available variants
+  ariaTrigger: string // phrase Aria uses to reference this component
 }
 
 export const COMPONENT_REGISTRY: ComponentEntry[] = [
   {
     name: "Button",
     path: "components/ui/Button",
-    description: "Interactive button with 6 visual variants, 4 sizes, loading state, and asChild support.",
+    description:
+      "Interactive button with 6 visual variants, 4 sizes, loading state, and asChild support.",
     variants: ["primary", "secondary", "ghost", "outline", "destructive", "link"],
     ariaTrigger: "button",
   },
   {
     name: "Badge",
     path: "components/ui/Badge",
-    description: "Status and count indicators. Use for order status (paid/pending/error) and item counts.",
+    description:
+      "Status and count indicators. Use for order status (paid/pending/error) and item counts.",
     variants: ["default", "success", "warning", "error", "active", "outline"],
     ariaTrigger: "badge or status indicator",
   },
@@ -52,7 +54,8 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   {
     name: "Dialog",
     path: "components/ui/Dialog",
-    description: "Modal dialog with focus trap, Escape to close, ARIA labeling. Compound: DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogFooter.",
+    description:
+      "Modal dialog with focus trap, Escape to close, ARIA labeling. Compound: DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogFooter.",
     ariaTrigger: "modal or dialog",
   },
   {
@@ -82,7 +85,8 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   {
     name: "EmptyState",
     path: "components/ui/EmptyState",
-    description: "Three-variant empty content display: default (first-time), search (no results), error (failed).",
+    description:
+      "Three-variant empty content display: default (first-time), search (no results), error (failed).",
     variants: ["default", "search", "error"],
     ariaTrigger: "empty state",
   },

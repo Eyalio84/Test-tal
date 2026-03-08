@@ -39,7 +39,13 @@ export function Tabs({
   )
 }
 
-export function TabList({ children, className }: { children: React.ReactNode; className?: string }) {
+export function TabList({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
     <div role="tablist" className={cn("flex items-center gap-1 flex-wrap", className)}>
       {children}
@@ -47,7 +53,15 @@ export function TabList({ children, className }: { children: React.ReactNode; cl
   )
 }
 
-export function Tab({ value, children, className }: { value: string; children: React.ReactNode; className?: string }) {
+export function Tab({
+  value,
+  children,
+  className,
+}: {
+  value: string
+  children: React.ReactNode
+  className?: string
+}) {
   const { value: activeValue, setValue } = useTabs()
   const isActive = activeValue === value
   const id = `tab-${value}`
@@ -72,7 +86,15 @@ export function Tab({ value, children, className }: { value: string; children: R
   )
 }
 
-export function TabPanel({ value, children, className }: { value: string; children: React.ReactNode; className?: string }) {
+export function TabPanel({
+  value,
+  children,
+  className,
+}: {
+  value: string
+  children: React.ReactNode
+  className?: string
+}) {
   const { value: activeValue } = useTabs()
   if (activeValue !== value) return null
   return (

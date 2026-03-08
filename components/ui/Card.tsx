@@ -1,27 +1,24 @@
-import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react"
 import { cn } from "@/lib/cn"
 
-const cardVariants = cva(
-  "bg-white border",
-  {
-    variants: {
-      variant: {
-        default:  "border-stone-200 rounded-lg",
-        stat:     "border-stone-100",                     // no rounding — matches admin stats cards
-        shortcut: "border-stone-200 rounded-lg hover:border-stone-300 hover:shadow-sm transition",
-        flat:     "border-stone-100 rounded",
-      },
-      padding: {
-        none: "",
-        sm:   "p-3",
-        md:   "p-5",
-        lg:   "p-6",
-      },
+const cardVariants = cva("bg-white border", {
+  variants: {
+    variant: {
+      default: "border-stone-200 rounded-lg",
+      stat: "border-stone-100", // no rounding — matches admin stats cards
+      shortcut: "border-stone-200 rounded-lg hover:border-stone-300 hover:shadow-sm transition",
+      flat: "border-stone-100 rounded",
     },
-    defaultVariants: { variant: "default", padding: "none" },
-  }
-)
+    padding: {
+      none: "",
+      sm: "p-3",
+      md: "p-5",
+      lg: "p-6",
+    },
+  },
+  defaultVariants: { variant: "default", padding: "none" },
+})
 
 export type CardVariant = NonNullable<VariantProps<typeof cardVariants>["variant"]>
 
@@ -49,10 +46,10 @@ export function Card({ className, variant, padding, ...props }: CardProps) {
 //   stat             → stone-100 (light, matching the stat card aesthetic)
 //   flat             → stone-100
 const headerBorder: Record<CardVariant, string> = {
-  default:  "border-stone-200",
-  stat:     "border-stone-100",
+  default: "border-stone-200",
+  stat: "border-stone-100",
   shortcut: "border-stone-200",
-  flat:     "border-stone-100",
+  flat: "border-stone-100",
 }
 
 export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {

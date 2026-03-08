@@ -15,8 +15,8 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ id, label, helper, error, className, ...props }, ref) => {
-    const helperId  = helper ? `${id}-helper`  : undefined
-    const errorId   = error  ? `${id}-error`   : undefined
+    const helperId = helper ? `${id}-helper` : undefined
+    const errorId = error ? `${id}-error` : undefined
     const describedBy = [helperId, errorId].filter(Boolean).join(" ") || undefined
     return (
       <div className="flex flex-col gap-1">
@@ -34,10 +34,20 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {helper && !error && (
-          <p id={helperId} className="text-xs text-ink/40">{helper}</p>
+          <p id={helperId} className="text-xs text-ink/40">
+            {helper}
+          </p>
         )}
         {error && (
-          <p id={errorId} role="alert" aria-live="assertive" aria-atomic="true" className="text-xs text-red-600">{error}</p>
+          <p
+            id={errorId}
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            className="text-xs text-red-600"
+          >
+            {error}
+          </p>
         )}
       </div>
     )
@@ -53,8 +63,8 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ id, label, helper, error, className, ...props }, ref) => {
-    const helperId    = helper ? `${id}-helper` : undefined
-    const errorId     = error  ? `${id}-error`  : undefined
+    const helperId = helper ? `${id}-helper` : undefined
+    const errorId = error ? `${id}-error` : undefined
     const describedBy = [helperId, errorId].filter(Boolean).join(" ") || undefined
     return (
       <div className="flex flex-col gap-1">
@@ -72,10 +82,20 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           {...props}
         />
         {helper && !error && (
-          <p id={helperId} className="text-xs text-ink/40">{helper}</p>
+          <p id={helperId} className="text-xs text-ink/40">
+            {helper}
+          </p>
         )}
         {error && (
-          <p id={errorId} role="alert" aria-live="assertive" aria-atomic="true" className="text-xs text-red-600">{error}</p>
+          <p
+            id={errorId}
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            className="text-xs text-red-600"
+          >
+            {error}
+          </p>
         )}
       </div>
     )
