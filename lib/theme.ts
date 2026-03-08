@@ -78,6 +78,8 @@ export const THEMES: Record<string, ThemeConfig> = {
   saas:       saasTheme,
 }
 
+export const THEME_IDS = Object.keys(THEMES) as (keyof typeof THEMES)[]
+
 const key = (process.env.NEXT_PUBLIC_THEME ?? "jewelry").toLowerCase()
 export const activeTheme: ThemeConfig = THEMES[key] ?? jewelryTheme
 

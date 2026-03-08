@@ -3,33 +3,36 @@ import { auth } from "@/lib/auth"
 import { PutObjectCommand } from "@aws-sdk/client-s3"
 import { r2, R2_BUCKET, r2Key, r2Url } from "@/lib/r2"
 import { prisma } from "@/lib/db"
+import { env } from "@/env"
+import { uploadSchema } from "@/lib/validations"
 
 const MAX_BYTES = 5 * 1024 * 1024 // 5MB
 
 export async function POST(req: NextRequest) {
   const session = await auth()
-  if (session?.user?.email !== process.env.ADMIN_EMAIL) {
+  if (session?.user?.email !== env.ADMIN_EMAIL) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 })
   }
 
-  const form = await req.formData()
-  const file    = form.get("file")    as File   | null
-  const themeId = form.get("themeId") as string | null
-  const slot    = form.get("slot")    as string | null
-  const alt     = (form.get("alt")    as string | null) ?? ""
+  const form    = await req.formData()
+  const file    = form.get("file") as File | null
 
-  if (!file || !themeId || !slot) {
-    return NextResponse.json({ error: "file, themeId, and slot are required" }, { status: 400 })
+  if (!file) {
+    return NextResponse.json({ error: "file is required" }, { status: 400 })
   }
-
   if (file.size > MAX_BYTES) {
     return NextResponse.json({ error: "File too large — max 5MB" }, { status: 413 })
   }
 
-  const validThemes = ["jewelry","candy","bakery","flowers","wine","restaurant","portfolio","saas"]
-  if (!validThemes.includes(themeId)) {
-    return NextResponse.json({ error: "Invalid themeId" }, { status: 400 })
+  const parsed = uploadSchema.safeParse({
+    themeId: form.get("themeId"),
+    slot:    form.get("slot"),
+    alt:     form.get("alt") ?? "",
+  })
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
+  const { themeId, slot, alt } = parsed.data
 
   const contentType = file.type || "image/jpeg"
   const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg"
