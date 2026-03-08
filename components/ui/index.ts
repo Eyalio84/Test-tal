@@ -2,3 +2,4 @@
 // Add each component as implemented
 export { Button, buttonVariants, type ButtonProps } from "./Button"
 export { Slot } from "./Slot"
+export { Badge, CountBadge, type BadgeProps } from "./Badge"
