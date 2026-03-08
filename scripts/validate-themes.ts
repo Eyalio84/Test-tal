@@ -8,6 +8,8 @@
 import assert from "node:assert/strict"
 import { THEMES } from "../lib/theme"
 
+const STRICT = process.argv.includes("--strict")
+
 let passed = 0
 let failed = 0
 
@@ -56,6 +58,17 @@ for (const theme of Object.values(THEMES)) {
       assert.ok(p.price >= 0, `"${p.name}" has negative price: ${p.price}`)
     }
   })
+
+  if (STRICT) {
+    check("no product images still pointing at Unsplash", () => {
+      const unsplash = theme.products.filter(p => p.image.includes("unsplash.com"))
+      assert.deepEqual(
+        unsplash.map(p => p.name),
+        [],
+        `Still on Unsplash: ${unsplash.map(p => p.name).join(", ")}`
+      )
+    })
+  }
 }
 
 console.log(`\n${"─".repeat(40)}`)
