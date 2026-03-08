@@ -2,11 +2,14 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
+# Install all deps (including devDependencies needed for Next.js/Tailwind build)
+RUN npm ci
 
 # ── Stage 2: builder ───────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 WORKDIR /app
+# openssl required by Prisma client generation
+RUN apk add --no-cache openssl
 
 # Copy deps
 COPY --from=deps /app/node_modules ./node_modules
@@ -25,6 +28,7 @@ RUN npm run build
 # ── Stage 3: runner ────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
 WORKDIR /app
+RUN apk add --no-cache openssl
 
 ENV NODE_ENV=production
 
