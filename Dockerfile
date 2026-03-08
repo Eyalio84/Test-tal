@@ -15,6 +15,8 @@ RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Skip server-side env validation at build time (vars only available at runtime)
+ENV SKIP_ENV_VALIDATION=true
 # Build-time env vars (NEXT_PUBLIC_* are baked into the JS bundle here)
 ARG NEXT_PUBLIC_GEMINI_API_KEY
 ARG NEXT_PUBLIC_WHATSAPP_NUMBER

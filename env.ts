@@ -2,6 +2,7 @@ import { createEnv } from "@t3-oss/env-nextjs"
 import { z } from "zod"
 
 export const env = createEnv({
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   /**
    * Server-side variables — never sent to the browser.
    * All MUST be present or the server will refuse to start.
