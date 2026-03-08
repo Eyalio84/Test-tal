@@ -29,13 +29,13 @@ function extFromContentType(ct: string): string {
   return "jpg"
 }
 
-async function uploadSlot(themeId: string, slot: string, imageUrl: string, alt = "") {
+async function uploadSlot(themeId: string, slot: string, imageUrl: string, alt = ""): Promise<"uploaded" | "skipped"> {
   // Skip if already migrated and not forcing
   if (!FORCE) {
     const existing = await prisma.themeImage.findUnique({ where: { themeId_slot: { themeId, slot } } })
     if (existing) {
       console.log(`  ↩  skip  ${themeId}/${slot} (already in DB)`)
-      return
+      return "skipped"
     }
   }
 
@@ -59,27 +59,43 @@ async function uploadSlot(themeId: string, slot: string, imageUrl: string, alt =
     create: { themeId, slot, r2Key: key, url, alt },
   })
   console.log(`  ✓  done  ${url}`)
+  return "uploaded"
 }
 
 async function main() {
   console.log(`\nMigrating theme images to R2${FORCE ? " (force mode)" : ""}...\n`)
-  let total = 0
+  let uploaded = 0
+  let skipped  = 0
+  const failed: string[] = []
 
   for (const [themeId, theme] of Object.entries(THEMES)) {
     console.log(`\n[${themeId}]`)
 
-    // Hero
-    await uploadSlot(themeId, "hero", theme.hero.image, theme.hero.imageAlt)
-    total++
+    const slots = [
+      { slot: "hero", url: theme.hero.image, alt: theme.hero.imageAlt },
+      ...theme.products.map(p => ({ slot: p.slug, url: p.image, alt: p.name })),
+    ]
 
-    // Products
-    for (const product of theme.products) {
-      await uploadSlot(themeId, product.slug, product.image, product.name)
-      total++
+    for (const { slot, url, alt } of slots) {
+      try {
+        const result = await uploadSlot(themeId, slot, url, alt)
+        if (result === "uploaded") uploaded++
+        else skipped++
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e)
+        console.warn(`  ✗  fail  ${themeId}/${slot}: ${msg}`)
+        failed.push(`${themeId}/${slot}`)
+      }
     }
   }
 
-  console.log(`\n✓ Migration complete — ${total} slots processed.\n`)
+  console.log(`\n─────────────────────────────────`)
+  console.log(`✓ Uploaded: ${uploaded}  Skipped: ${skipped}  Failed: ${failed.length}`)
+  if (failed.length > 0) {
+    console.log(`\nFailed slots (fix source URL and re-run):`)
+    failed.forEach(s => console.log(`  - ${s}`))
+  }
+  console.log()
 }
 
 main()
