@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "validate:themes": "tsx scripts/validate-themes.ts"
+    "validate:themes": "tsx scripts/validate-themes.ts",
+    "migrate:images": "tsx --env-file=.env.local scripts/migrate-images.ts"
   },
   "prisma": {
     "seed": "node_modules/.bin/tsx prisma/seed.ts"
