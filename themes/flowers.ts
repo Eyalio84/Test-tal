@@ -18,7 +18,7 @@ export const flowersTheme: ThemeConfig = {
     headline: "Flowers that say what words can't.",
     subline:  "Hand-arranged, locally sourced, and delivered the same day.",
     ctaText:  "Send Flowers",
-    image:    "https://images.unsplash.com/photo-1561181286-d5c73431a97b?w=1600&q=80",
+    image:    "https://images.unsplash.com/photo-1606041011872-596597976b25?w=1600&q=80",
     imageAlt: "Fresh flower bouquet arrangement",
   },
   collections: [
