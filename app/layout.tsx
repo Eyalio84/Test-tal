@@ -1,3 +1,6 @@
+// All pages use DB (getActiveTheme) — opt out of static generation globally
+export const dynamic = "force-dynamic"
+
 import type { Metadata } from "next"
 import { Playfair_Display, Inter, Lexend, Fredoka, Lora, Cormorant_Garamond } from "next/font/google"
 import { Providers }           from "@/components/layout/Providers"
