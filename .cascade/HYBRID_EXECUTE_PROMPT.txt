@@ -1,0 +1,205 @@
+CASCADE EXECUTION PROMPT — P4 Extended Implementation
+
+Copy everything below and paste into a NEW Claude Code session with Haiku 4.5 selected.
+
+═══════════════════════════════════════════════════════════════════════
+
+PLAN DETAILS:
+- Plan file: .cascade/plans/cascade_plan_20260309_1209.md
+- Total tasks: 21
+- Your tasks (Haiku): 18 tasks
+- Coordinator tasks (Sonnet): Tasks 4.1–4.2 (Aria integration logic) — you will skip these
+- Gemini pause point: 1 (before Task 2.2 — component library design research)
+
+═══════════════════════════════════════════════════════════════════════
+
+YOUR ROLE:
+You are Haiku 4.5. Execute all 18 haiku-labeled tasks from the plan.
+The Sonnet coordinator (different session) monitors your progress, reviews code between batches, and handles Tasks 4.1–4.2.
+
+EXECUTION RULES:
+1. **Before starting:** Read the plan file completely (.cascade/plans/cascade_plan_20260309_1209.md)
+2. **Batch execution:** Implement 3 tasks per batch, then report
+3. **After each batch:** Show what you did, paste verification output (test results, TypeScript check), then wait for coordinator approval
+4. **At Pause Point 1:** After you complete Task 2.1, STOP and report "PAUSE POINT 1 REACHED — awaiting Gemini research on component library design patterns"
+5. **Skip sonnet tasks:** Do not implement Tasks 4.1–4.2 (Aria integration). Report as skipped.
+6. **For each task:** Implement → Verify (tests/TS/lint) → Commit → Report
+
+PREREQUISITES:
+- Project: /root/tal-boilerplate (Next.js 16, Prisma, Node 18+)
+- Dev server: Start with `npm run dev` (port 3001) before Task 1 begins
+- Database: Neon PostgreSQL via Prisma (already configured)
+- Auth: Google OAuth via NextAuth v5 (already configured)
+
+═══════════════════════════════════════════════════════════════════════
+
+BATCH 1: Tasks 1.1–1.3 (Database Schema & API Read)
+
+Task 1.1: Add Component Model to Prisma Schema
+Task 1.2: Add Component Validation Schemas
+Task 1.3: Create Component API Routes (GET)
+
+After Batch 1:
+- Run: npx tsc --noEmit
+- Run: npm test (should still pass, no breaking changes)
+- Run: git status (verify schema migration file exists)
+- Report: "Batch 1 complete. Schema: [✓]. Validation: [✓]. API GET: [✓]."
+
+═══════════════════════════════════════════════════════════════════════
+
+BATCH 2: Tasks 1.4–1.5 (Admin API & Tests)
+
+Task 1.4: Create Component Admin API Routes (POST/PATCH/DELETE)
+Task 1.5: Write API Integration Tests
+
+After Batch 2:
+- Run: npm test tests/api/components.test.ts (should all pass)
+- Run: npx tsc --noEmit (no errors)
+- Run: npm run lint (no errors)
+- Report: "Batch 2 complete. Admin API: [✓]. Tests: [N passing]."
+
+═══════════════════════════════════════════════════════════════════════
+
+BATCH 3: Tasks 2.1 (Admin CRUD UI)
+
+Task 2.1: Create Admin Components Page (CRUD UI)
+
+After Batch 3:
+- Run: npx tsc --noEmit
+- Dev server should load /admin/components without errors
+- Report: "Batch 3 complete. Admin CRUD UI: [✓]."
+- Then REPORT: "PAUSE POINT 1 REACHED — awaiting Gemini research before Task 2.2 (component library)"
+
+═══════════════════════════════════════════════════════════════════════
+
+[COORDINATOR PAUSE — Sonnet session will run Gemini research and provide component design guidance]
+
+[Resume here after coordinator approval with component naming/structure decisions]
+
+═══════════════════════════════════════════════════════════════════════
+
+BATCH 4: Task 2.2 (Build 30-50 Atomic Components) — STAGGERED
+
+Task 2.2 will be split across 6 micro-batches (Haiku can handle this).
+
+Micro-batch 2.2.1: Buttons (primary, secondary, ghost, outline, destructive, link) + sizes
+Micro-batch 2.2.2: Inputs (text, email, password, textarea) + states
+Micro-batch 2.2.3: Cards (product, testimonial, feature, stat, pricing)
+Micro-batch 2.2.4: Overlays (dialog, alert-dialog, popover, tooltip)
+Micro-batch 2.2.5: Navigation (breadcrumb, pagination, tabs, sidebar)
+Micro-batch 2.2.6: Sections + Data Display (hero, features, testimonials, CTA, table, skeleton, spinner, empty-state)
+
+After each micro-batch:
+- Run: npx tsc --noEmit (no type errors)
+- Run: npm test tests/ui/ (should not break existing tests)
+- Commit with clear message
+- Report: "Micro-batch [N]: [component count] components + tests. All passing."
+
+After all Batch 4 micro-batches:
+- Run: npm test (full suite should pass)
+- Report: "Batch 4 complete. 30-50 components implemented + tested."
+
+═══════════════════════════════════════════════════════════════════════
+
+BATCH 5: Tasks 2.3–2.4 (Seed DB & Public Showcase)
+
+Task 2.3: Seed Initial 30-50 Components to Database
+Task 2.4: Create Public Components Showcase (/components)
+
+After Batch 5:
+- Run: npx tsx scripts/seed-components.ts (should seed ~50 components)
+- Run: npm run dev and navigate to http://localhost:3001/components (should load and show components)
+- Run: npx tsc --noEmit
+- Report: "Batch 5 complete. Components seeded: [N]. Showcase page: [✓]."
+
+═══════════════════════════════════════════════════════════════════════
+
+BATCH 6: Tasks 3.1–3.2 (Editor Palette Integration)
+
+Task 3.1: Create Component Palette Sidebar Component
+Task 3.2: Add Component Palette to Editor Layout
+
+After Batch 6:
+- Run: npx tsc --noEmit
+- Dev server: navigate to http://localhost:3001/admin/editor (palette should be visible/toggleable)
+- Run: npm test (no new failures)
+- Report: "Batch 6 complete. Editor palette: [✓]. Drawer toggle: [✓]."
+
+═══════════════════════════════════════════════════════════════════════
+
+BATCH 7: Tasks 4.3–4.4 (Canvas Store & Aria Wire)
+
+Task 4.3: Create Canvas Store (Zustand) for Component Instances
+Task 4.4: Wire Canvas Store to Aria Functions (skip 4.1–4.2, coordinator handles)
+
+After Batch 7:
+- Run: npx tsc --noEmit
+- Run: npm test (check Zustand store implementation)
+- Report: "Batch 7 complete. Canvas store: [✓]. Aria integration stubs: [✓]."
+- REPORT: "NOTE: Tasks 4.1–4.2 (Aria context injection) skipped — coordinator will implement."
+
+═══════════════════════════════════════════════════════════════════════
+
+BATCH 8: Tasks 5.1–5.2 (Preview Images & Smoke Tests)
+
+Task 5.1: Upload Component Preview Images to R2
+Task 5.2: Test Component Registry End-to-End
+
+After Batch 8:
+- Run: npx tsc --noEmit
+- Run: npm test (all tests should pass)
+- Run: npm run lint (no errors)
+- Report: "Batch 8 complete. Preview image upload: [✓]. Smoke tests: [✓]."
+
+═══════════════════════════════════════════════════════════════════════
+
+BATCH 9: Task 6.1 (Final Validation)
+
+Task 6.1: TypeScript & Linting Validation
+
+After Batch 9:
+- Run: npx tsc --noEmit (must PASS — no errors)
+- Run: npm test (must PASS — all tests)
+- Run: npm run lint (must PASS — no errors)
+- If any FAIL, diagnose and fix before reporting
+- Report: "Batch 9 complete. TypeScript: [PASS]. Tests: [PASS]. Lint: [PASS]."
+- FINAL REPORT: "✅ ALL 18 HAIKU TASKS COMPLETE. Code ready for coordinator review."
+
+═══════════════════════════════════════════════════════════════════════
+
+IMPORTANT NOTES:
+
+1. **Skip Tasks 4.1–4.2:** These are Sonnet-level Aria integration logic. Report them as "SKIPPED (Sonnet tasks)" in your final summary.
+
+2. **Commit frequently:** After each batch, create a git commit with a clear message (e.g., "feat: add component schema and API routes").
+
+3. **Dev server:** Start `npm run dev` once at the beginning. Keep it running throughout execution for manual verification steps.
+
+4. **Pause Point 1:** After Task 2.1 (Admin CRUD UI completion), PAUSE and wait for coordinator to provide Gemini research findings on component design patterns. Do not start Task 2.2 until coordinator says "resume."
+
+5. **Code style:** Follow existing CLAUDE.md conventions:
+   - Import order: Next/React → lib → components
+   - Zod for validation
+   - TanStack Query for server state
+   - Zustand for client state
+   - Dark Tailwind theme for admin UIs
+
+6. **Error handling:** If any task fails:
+   - Do NOT skip — diagnose the issue
+   - Fix the underlying problem
+   - Verify with tests/TypeScript check
+   - Then move forward
+
+═══════════════════════════════════════════════════════════════════════
+
+NEXT STEPS (for you, when pasting into Haiku session):
+
+1. Copy this entire prompt (everything between the equals lines)
+2. Open a NEW Claude Code session
+3. Select Haiku 4.5 as the model (use /fast for speed if available)
+4. In the message input, paste this prompt
+5. Haiku will read the plan and start with Batch 1
+
+The Sonnet coordinator (this session) will monitor, answer questions, approve between batches, and handle Tasks 4.1–4.2 during Pause Point 1.
+
+═══════════════════════════════════════════════════════════════════════

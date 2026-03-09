@@ -146,6 +146,19 @@ model ThemeImage {
   @@unique([themeId, slot])
 }
 
+model Component {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+  category     String   // e.g. "button" | "input" | "card" | "overlay" | "nav" | "section"
+  description  String?
+  propsSchema  Json     // flexible object shape for component props validation
+  previewImage String?  // nullable R2 key e.g. "components/button/1234.webp"
+  ariaName     String   // snake_case e.g. "primary_button" | "testimonial_card"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model WebhookEvent {
   id          String   @id
   type        String
