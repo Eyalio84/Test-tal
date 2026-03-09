@@ -3,6 +3,7 @@
 import { useCallback } from "react"
 import toast from "react-hot-toast"
 import { useAria } from "@/store/aria"
+import { useCanvas } from "@/store/canvas"
 
 // ── Module-level singletons ────────────────────────────────────────────────
 // These live OUTSIDE React — page navigation can never affect them
@@ -416,6 +417,55 @@ async function executeCommand(name: string, args: Record<string, unknown>): Prom
       aria().setPendingConfirm({ action: "reorder_section", args })
       aria().dispatchCommand({ type: "PENDING_CONFIRM", action: "reorder_section", args })
       return `Move the "${args.sectionId as string}" section ${args.direction as string}? Say yes to confirm or no to cancel.`
+    }
+
+    // ── Component canvas manipulation ──────────────────────────────────────
+    case "add_component": {
+      if (!aria().editorMode) return undefined
+      const slug = args.component_slug as string
+      const position = (args.position as string | undefined) ?? "before_footer"
+      const props = (args.props as Record<string, unknown> | undefined) ?? {}
+
+      // Fetch component to validate it exists
+      try {
+        const res = await fetch(`/api/components?search=${slug}`)
+        const components = await res.json() as Array<{ slug: string; name: string }>
+        const found = components.find(c => c.slug === slug)
+        if (!found) return `I couldn't find a component with the slug "${slug}".`
+      } catch {
+        return "Failed to validate component — please try again."
+      }
+
+      // Add to canvas store
+      const componentId = useCanvas.getState().addComponent(slug, props, position)
+      return `Added ${slug} component to canvas (ID: ${componentId}).`
+    }
+
+    case "edit_component": {
+      if (!aria().editorMode) return undefined
+      const componentId = args.component_id as string
+      const props = (args.props as Record<string, unknown> | undefined) ?? {}
+
+      // Check if component exists in canvas
+      const instance = useCanvas.getState().getInstance(componentId)
+      if (!instance) return `Component with ID "${componentId}" not found on canvas.`
+
+      // Update in canvas store
+      useCanvas.getState().updateComponent(componentId, props)
+      return `Updated ${instance.slug} component (ID: ${componentId}).`
+    }
+
+    case "remove_component": {
+      if (!aria().editorMode) return undefined
+      const componentId = args.component_id as string
+
+      // Check if component exists in canvas
+      const instance = useCanvas.getState().getInstance(componentId)
+      if (!instance) return `Component with ID "${componentId}" not found on canvas.`
+
+      // Remove from canvas store
+      useCanvas.getState().removeComponent(componentId)
+      return `Removed ${instance.slug} component from canvas.`
     }
 
     case "publish_changes": {
