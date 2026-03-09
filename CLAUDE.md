@@ -3,8 +3,9 @@
 ## Project Identity
 - **Product:** StoreKit — Voice-AI website builder platform
 - **Stack:** Next.js 16 App Router · Prisma v5 · Neon PostgreSQL · NextAuth v5 · Zustand · Stripe · Gemini Live API · Cloudflare R2
-- **Dev server:** `npm run dev` → port 3001
+- **Dev server:** `npm run dev` → port 3000 (locked in package.json + .env.local)
 - **Working dir:** `/root/tal-boilerplate`
+- **Cloud Run:** https://tal-store-233162846070.europe-west1.run.app (port 3000)
 
 ## Before every commit
 ```bash

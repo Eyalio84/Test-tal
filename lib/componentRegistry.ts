@@ -1,99 +1,507 @@
-// Component registry: every UI component Aria can reference by name.
-// Used by buildAriaConfig() to inform Aria of available components.
+// Component registry with metadata for all 40+ atomic components
+// This is used for seeding the database and providing Aria access to the component library
 
-export interface ComponentEntry {
-  name: string // Aria-speakable name
-  path: string // import path
-  description: string // what it does in one sentence
-  variants?: string[] // available variants
-  ariaTrigger: string // phrase Aria uses to reference this component
-}
-
-export const COMPONENT_REGISTRY: ComponentEntry[] = [
+export const COMPONENT_REGISTRY = [
+  // ── BUTTONS (6 components) ──
   {
-    name: "Button",
-    path: "components/ui/Button",
-    description:
-      "Interactive button with 6 visual variants, 4 sizes, loading state, and asChild support.",
-    variants: ["primary", "secondary", "ghost", "outline", "destructive", "link"],
-    ariaTrigger: "button",
+    slug: "primary-button",
+    name: "Primary Button",
+    category: "button",
+    description: "Main call-to-action button with dark background. Use for primary actions.",
+    ariaName: "primary_button",
+    propsSchema: {
+      children: { type: "string", required: true, description: "Button text content" },
+      variant: { type: "enum", enum: ["primary"], default: "primary" },
+      size: { type: "enum", enum: ["sm", "md", "lg"], default: "md" },
+      loading: { type: "boolean", default: false },
+      disabled: { type: "boolean", default: false },
+    },
   },
   {
-    name: "Badge",
-    path: "components/ui/Badge",
-    description:
-      "Status and count indicators. Use for order status (paid/pending/error) and item counts.",
-    variants: ["default", "success", "warning", "error", "active", "outline"],
-    ariaTrigger: "badge or status indicator",
+    slug: "secondary-button",
+    name: "Secondary Button",
+    category: "button",
+    description: "Secondary action button with border. Use for non-primary actions.",
+    ariaName: "secondary_button",
+    propsSchema: {
+      children: { type: "string", required: true },
+      variant: { type: "enum", enum: ["secondary"] },
+      size: { type: "enum", enum: ["sm", "md", "lg"] },
+      disabled: { type: "boolean" },
+    },
   },
   {
-    name: "Input",
-    path: "components/ui/Input",
-    description: "Text input with label, helper text, and error state. Wired for react-hook-form.",
-    ariaTrigger: "text input or form field",
+    slug: "ghost-button",
+    name: "Ghost Button",
+    category: "button",
+    description: "Minimal button with transparent background.",
+    ariaName: "ghost_button",
+    propsSchema: {
+      children: { type: "string", required: true },
+      variant: { type: "enum", enum: ["ghost"] },
+      size: { type: "enum", enum: ["sm", "md", "lg"] },
+    },
   },
   {
+    slug: "outline-button",
+    name: "Outline Button",
+    category: "button",
+    description: "Button with subtle border and light background on hover.",
+    ariaName: "outline_button",
+    propsSchema: {
+      children: { type: "string", required: true },
+      variant: { type: "enum", enum: ["outline"] },
+      size: { type: "enum", enum: ["sm", "md", "lg"] },
+    },
+  },
+  {
+    slug: "destructive-button",
+    name: "Destructive Button",
+    category: "button",
+    description: "Red button for destructive actions like delete or remove.",
+    ariaName: "destructive_button",
+    propsSchema: {
+      children: { type: "string", required: true },
+      variant: { type: "enum", enum: ["destructive"] },
+      size: { type: "enum", enum: ["sm", "md", "lg"] },
+    },
+  },
+  {
+    slug: "link-button",
+    name: "Link Button",
+    category: "button",
+    description: "Unstyled button that looks like a text link.",
+    ariaName: "link_button",
+    propsSchema: {
+      children: { type: "string", required: true },
+      variant: { type: "enum", enum: ["link"] },
+    },
+  },
+  // ── ICONS (1 component) ──
+  {
+    slug: "icon-button",
+    name: "Icon Button",
+    category: "button",
+    description: "Square or circular button for icon actions with required aria-label.",
+    ariaName: "icon_button",
+    propsSchema: {
+      label: { type: "string", required: true, description: "Accessibility label" },
+      variant: { type: "enum", enum: ["default", "primary", "secondary", "ghost", "destructive"] },
+      size: { type: "enum", enum: ["sm", "md", "lg"] },
+    },
+  },
+  // ── INPUTS (5 components) ──
+  {
+    slug: "text-input",
+    name: "Text Input",
+    category: "input",
+    description: "Single-line text input field.",
+    ariaName: "text_input",
+    propsSchema: {
+      placeholder: { type: "string" },
+      disabled: { type: "boolean" },
+      required: { type: "boolean" },
+      maxLength: { type: "number" },
+    },
+  },
+  {
+    slug: "email-input",
+    name: "Email Input",
+    category: "input",
+    description: "Input field with email validation.",
+    ariaName: "email_input",
+    propsSchema: {
+      placeholder: { type: "string", default: "user@example.com" },
+      disabled: { type: "boolean" },
+    },
+  },
+  {
+    slug: "password-input",
+    name: "Password Input",
+    category: "input",
+    description: "Masked password input field.",
+    ariaName: "password_input",
+    propsSchema: {
+      placeholder: { type: "string" },
+      disabled: { type: "boolean" },
+    },
+  },
+  {
+    slug: "textarea",
     name: "Textarea",
-    path: "components/ui/Input",
-    description: "Multiline text input with same label/error/helper API as Input.",
-    ariaTrigger: "textarea or multiline input",
+    category: "input",
+    description: "Multi-line text input field.",
+    ariaName: "textarea",
+    propsSchema: {
+      placeholder: { type: "string" },
+      rows: { type: "number", default: 4 },
+      maxLength: { type: "number" },
+      disabled: { type: "boolean" },
+    },
   },
   {
-    name: "Select",
-    path: "components/ui/Select",
-    description: "Accessible native select with custom styling, placeholder, and error state.",
-    ariaTrigger: "select or dropdown",
+    slug: "checkbox",
+    name: "Checkbox",
+    category: "input",
+    description: "Checkbox input for boolean selection.",
+    ariaName: "checkbox",
+    propsSchema: {
+      label: { type: "string" },
+      disabled: { type: "boolean" },
+      checked: { type: "boolean" },
+    },
+  },
+  // ── SELECT (2 components) ──
+  {
+    slug: "select-dropdown",
+    name: "Select Dropdown",
+    category: "select",
+    description: "Standard dropdown select component.",
+    ariaName: "select_dropdown",
+    propsSchema: {
+      options: { type: "string", required: true, description: "Comma-separated options or JSON array" },
+      placeholder: { type: "string" },
+      disabled: { type: "boolean" },
+    },
   },
   {
-    name: "Card",
-    path: "components/ui/Card",
-    description: "Container compound component. Variants: default, stat, shortcut, flat.",
-    variants: ["default", "stat", "shortcut", "flat"],
-    ariaTrigger: "card",
+    slug: "multiselect",
+    name: "Multiselect",
+    category: "select",
+    description: "Dropdown that allows multiple selections.",
+    ariaName: "multiselect",
+    propsSchema: {
+      options: { type: "string", required: true },
+      maxSelections: { type: "number" },
+    },
+  },
+  // ── CARDS (5 components) ──
+  {
+    slug: "product-card",
+    name: "Product Card",
+    category: "card",
+    description: "Card displaying product image, name, price, and CTA.",
+    ariaName: "product_card",
+    propsSchema: {
+      image: { type: "string" },
+      name: { type: "string", required: true },
+      price: { type: "number", required: true },
+      description: { type: "string" },
+      ctaText: { type: "string", default: "Add to Cart" },
+    },
   },
   {
-    name: "Dialog",
-    path: "components/ui/Dialog",
-    description:
-      "Modal dialog with focus trap, Escape to close, ARIA labeling. Compound: DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogFooter.",
-    ariaTrigger: "modal or dialog",
+    slug: "testimonial-card",
+    name: "Testimonial Card",
+    category: "card",
+    description: "Card with quote, author, role, and optional rating.",
+    ariaName: "testimonial_card",
+    propsSchema: {
+      quote: { type: "string", required: true },
+      author: { type: "string", required: true },
+      role: { type: "string" },
+      avatar: { type: "string" },
+      rating: { type: "number" },
+    },
   },
   {
-    name: "Tabs",
-    path: "components/ui/Tabs",
-    description: "Tab navigation with APG keyboard pattern. Compound: TabList, Tab, TabPanel.",
-    ariaTrigger: "tabs",
+    slug: "feature-card",
+    name: "Feature Card",
+    category: "card",
+    description: "Card highlighting a feature with icon and description.",
+    ariaName: "feature_card",
+    propsSchema: {
+      icon: { type: "string" },
+      title: { type: "string", required: true },
+      description: { type: "string", required: true },
+    },
   },
   {
-    name: "DataTable",
-    path: "components/ui/DataTable",
-    description: "TanStack Table v8 wrapper with sort, filter, pagination, and aria-sort.",
-    ariaTrigger: "table or data table",
+    slug: "stat-card",
+    name: "Stat Card",
+    category: "card",
+    description: "Card displaying a key metric or statistic.",
+    ariaName: "stat_card",
+    propsSchema: {
+      value: { type: "string", required: true },
+      label: { type: "string", required: true },
+      change: { type: "string" },
+    },
   },
   {
+    slug: "pricing-card",
+    name: "Pricing Card",
+    category: "card",
+    description: "Card for pricing tier with features list and CTA.",
+    ariaName: "pricing_card",
+    propsSchema: {
+      name: { type: "string", required: true },
+      price: { type: "number", required: true },
+      features: { type: "string", description: "Comma-separated features" },
+      highlighted: { type: "boolean" },
+    },
+  },
+  // ── DATA DISPLAY (4 components) ──
+  {
+    slug: "badge",
+    name: "Badge",
+    category: "badge",
+    description: "Small label or tag for categorization.",
+    ariaName: "badge",
+    propsSchema: {
+      children: { type: "string", required: true },
+      variant: { type: "enum", enum: ["default", "primary", "success", "warning", "error"] },
+    },
+  },
+  {
+    slug: "data-table",
+    name: "Data Table",
+    category: "data-display",
+    description: "Responsive table for displaying structured data.",
+    ariaName: "data_table",
+    propsSchema: {
+      columns: { type: "string", required: true, description: "Column names" },
+      rows: { type: "string", required: true, description: "Row data" },
+    },
+  },
+  {
+    slug: "skeleton",
     name: "Skeleton",
-    path: "components/ui/Skeleton",
-    description: "Animated placeholder matching content geometry. Use for initial data loads.",
-    ariaTrigger: "skeleton loader or loading placeholder",
+    category: "data-display",
+    description: "Loading placeholder with animated shimmer.",
+    ariaName: "skeleton",
+    propsSchema: {
+      count: { type: "number", default: 1 },
+      width: { type: "string", default: "100%" },
+      height: { type: "string", default: "20px" },
+    },
   },
   {
+    slug: "spinner",
     name: "Spinner",
-    path: "components/ui/Skeleton",
-    description: "Animated spinner for user-triggered loading states (button clicks, mutations).",
-    ariaTrigger: "spinner or loading indicator",
+    category: "data-display",
+    description: "Animated loading indicator.",
+    ariaName: "spinner",
+    propsSchema: {
+      size: { type: "enum", enum: ["sm", "md", "lg"] },
+      label: { type: "string", description: "Accessibility label" },
+    },
+  },
+  // ── OVERLAYS (4 components) ──
+  {
+    slug: "dialog",
+    name: "Dialog",
+    category: "overlay",
+    description: "Modal dialog for user interaction.",
+    ariaName: "dialog",
+    propsSchema: {
+      title: { type: "string" },
+      open: { type: "boolean" },
+      onOpenChange: { type: "string" },
+    },
   },
   {
-    name: "EmptyState",
-    path: "components/ui/EmptyState",
-    description:
-      "Three-variant empty content display: default (first-time), search (no results), error (failed).",
-    variants: ["default", "search", "error"],
-    ariaTrigger: "empty state",
+    slug: "alert-dialog",
+    name: "Alert Dialog",
+    category: "overlay",
+    description: "Confirmation dialog with action buttons.",
+    ariaName: "alert_dialog",
+    propsSchema: {
+      title: { type: "string", required: true },
+      description: { type: "string" },
+      confirmText: { type: "string" },
+      cancelText: { type: "string" },
+    },
   },
   {
+    slug: "popover",
+    name: "Popover",
+    category: "overlay",
+    description: "Floating content panel anchored to a trigger.",
+    ariaName: "popover",
+    propsSchema: {
+      trigger: { type: "string", required: true },
+      side: { type: "enum", enum: ["top", "right", "bottom", "left"] },
+    },
+  },
+  {
+    slug: "tooltip",
+    name: "Tooltip",
+    category: "overlay",
+    description: "Small floating label providing contextual information.",
+    ariaName: "tooltip",
+    propsSchema: {
+      content: { type: "string", required: true },
+      side: { type: "enum", enum: ["top", "right", "bottom", "left"] },
+    },
+  },
+  // ── NAVIGATION (4 components) ──
+  {
+    slug: "breadcrumb",
     name: "Breadcrumb",
-    path: "components/ui/Breadcrumb",
-    description: "Navigation breadcrumb with aria-current='page' on current item.",
-    ariaTrigger: "breadcrumb",
+    category: "nav",
+    description: "Navigation showing current page in hierarchy.",
+    ariaName: "breadcrumb",
+    propsSchema: {
+      items: { type: "string", required: true, description: "Breadcrumb path items" },
+    },
   },
-]
+  {
+    slug: "pagination",
+    name: "Pagination",
+    category: "nav",
+    description: "Controls for navigating multi-page content.",
+    ariaName: "pagination",
+    propsSchema: {
+      total: { type: "number", required: true },
+      currentPage: { type: "number", default: 1 },
+      perPage: { type: "number", default: 10 },
+    },
+  },
+  {
+    slug: "tabs",
+    name: "Tabs",
+    category: "nav",
+    description: "Tabbed interface for switching between content panels.",
+    ariaName: "tabs",
+    propsSchema: {
+      tabs: { type: "string", required: true, description: "Tab names" },
+      defaultTab: { type: "string" },
+    },
+  },
+  {
+    slug: "sidebar-nav",
+    name: "Sidebar Navigation",
+    category: "nav",
+    description: "Vertical navigation menu sidebar.",
+    ariaName: "sidebar_nav",
+    propsSchema: {
+      items: { type: "string", required: true, description: "Menu items" },
+      collapsible: { type: "boolean", default: true },
+    },
+  },
+  // ── SECTIONS (4 components) ──
+  {
+    slug: "hero-section",
+    name: "Hero Section",
+    category: "section",
+    description: "Large banner section with headline and CTA.",
+    ariaName: "hero_section",
+    propsSchema: {
+      headline: { type: "string", required: true },
+      subheading: { type: "string" },
+      cta: { type: "string" },
+      backgroundImage: { type: "string" },
+    },
+  },
+  {
+    slug: "features-section",
+    name: "Features Section",
+    category: "section",
+    description: "Section displaying multiple feature cards in grid.",
+    ariaName: "features_section",
+    propsSchema: {
+      title: { type: "string" },
+      features: { type: "string", required: true, description: "Feature list" },
+    },
+  },
+  {
+    slug: "testimonials-section",
+    name: "Testimonials Section",
+    category: "section",
+    description: "Section showing customer testimonial cards.",
+    ariaName: "testimonials_section",
+    propsSchema: {
+      title: { type: "string" },
+      testimonials: { type: "string", required: true },
+    },
+  },
+  {
+    slug: "cta-section",
+    name: "CTA Section",
+    category: "section",
+    description: "Call-to-action section with headline and button.",
+    ariaName: "cta_section",
+    propsSchema: {
+      headline: { type: "string", required: true },
+      buttonText: { type: "string", default: "Get Started" },
+      buttonUrl: { type: "string" },
+    },
+  },
+  // ── FEEDBACK (2 components) ──
+  {
+    slug: "empty-state",
+    name: "Empty State",
+    category: "feedback",
+    description: "Message shown when no content is available.",
+    ariaName: "empty_state",
+    propsSchema: {
+      icon: { type: "string" },
+      title: { type: "string", required: true },
+      description: { type: "string" },
+      action: { type: "string" },
+    },
+  },
+  {
+    slug: "progress-bar",
+    name: "Progress Bar",
+    category: "feedback",
+    description: "Visual indicator of progress towards completion.",
+    ariaName: "progress_bar",
+    propsSchema: {
+      value: { type: "number", required: true, description: "0-100" },
+      label: { type: "string" },
+    },
+  },
+  // ── FORMS (2 components) ──
+  {
+    slug: "form-field",
+    name: "Form Field",
+    category: "form",
+    description: "Input field with label and error message.",
+    ariaName: "form_field",
+    propsSchema: {
+      label: { type: "string", required: true },
+      name: { type: "string", required: true },
+      error: { type: "string" },
+      required: { type: "boolean" },
+    },
+  },
+  {
+    slug: "form-container",
+    name: "Form Container",
+    category: "form",
+    description: "Wrapper for form fields with submit handling.",
+    ariaName: "form_container",
+    propsSchema: {
+      title: { type: "string" },
+      onSubmit: { type: "string" },
+    },
+  },
+  // ── ADDITIONAL (2 components) ──
+  {
+    slug: "avatar",
+    name: "Avatar",
+    category: "image",
+    description: "User profile image with fallback.",
+    ariaName: "avatar",
+    propsSchema: {
+      src: { type: "string" },
+      alt: { type: "string", required: true },
+      size: { type: "enum", enum: ["sm", "md", "lg"] },
+    },
+  },
+  {
+    slug: "responsive-image",
+    name: "Responsive Image",
+    category: "image",
+    description: "Image with responsive sizing and lazy loading.",
+    ariaName: "responsive_image",
+    propsSchema: {
+      src: { type: "string", required: true },
+      alt: { type: "string", required: true },
+      width: { type: "number" },
+      height: { type: "number" },
+    },
+  },
+] as const

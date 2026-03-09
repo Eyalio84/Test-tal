@@ -7,7 +7,7 @@ import { updateComponentSchema } from "@/lib/validations"
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -18,8 +18,9 @@ export async function PATCH(
     const body = await request.json()
     const validated = updateComponentSchema.parse(body)
 
+    const resolvedParams = await params
     const component = await prisma.component.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data: validated as unknown as Prisma.ComponentUpdateInput,
     })
 
@@ -49,7 +50,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -57,8 +58,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 
+    const resolvedParams = await params
     await prisma.component.delete({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
     })
 
     return NextResponse.json({ success: true })
