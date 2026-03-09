@@ -114,6 +114,28 @@ When first connected, greet warmly in 1 sentence — introduce yourself and invi
     { name: "publish_changes",   description: "Publish all draft changes to the live site",                            parameters: { type: "OBJECT", properties: {} } },
     { name: "undo_edit",         description: "Undo the last edit",                                                     parameters: { type: "OBJECT", properties: {} } },
     { name: "redo_edit",         description: "Redo the last undone edit",                                              parameters: { type: "OBJECT", properties: {} } },
+
+    // ── Component editor functions (Task 4.2) ──────────────────────────────
+    ...(ariaContext === "member" ? [
+      { name: "add_component",
+        description: "Add an atomic component to the page canvas. Use when user says 'add a button', 'add a card', 'add a hero', etc.",
+        parameters: { type: "OBJECT", properties: {
+          component_slug: { type: "STRING", description: "Kebab-case component identifier (e.g. button, card, hero_section)" },
+          position: { type: "STRING", description: "Optional position: before_footer (default) or after_hero" },
+          props: { type: "OBJECT", description: "Optional component props to initialize with (e.g. {label: 'Click me'})" },
+        }, required: ["component_slug"] } },
+      { name: "edit_component",
+        description: "Edit props of a component on the canvas. Use when user says 'change the button text', 'update the card color', etc.",
+        parameters: { type: "OBJECT", properties: {
+          component_id: { type: "STRING", description: "ID of the component instance on the canvas" },
+          props: { type: "OBJECT", description: "Props to update (only provide props that changed)" },
+        }, required: ["component_id"] } },
+      { name: "remove_component",
+        description: "Remove a component from the page canvas.",
+        parameters: { type: "OBJECT", properties: {
+          component_id: { type: "STRING", description: "ID of the component instance to remove" },
+        }, required: ["component_id"] } },
+    ] : []),
   ]
 
   // Member context: override opening lines, keep rest of personality
@@ -559,9 +581,27 @@ export async function ariaConnect() {
         // silently skip if memory fetch fails — Aria still works without it
       }
 
+      // ── Task 4.1: Inject component registry into system prompt ──────────────
+      if (aria().ariaContext === "member" && aria().editorMode) {
+        try {
+          const compRes = await fetch("/api/components")
+          if (compRes.ok) {
+            const components = await compRes.json() as Array<{ slug: string; name: string; category: string }>
+            if (components?.length) {
+              const compBlock = "AVAILABLE_COMPONENTS:\n" + components
+                .map((c) => `- ${c.slug}: ${c.name} (${c.category})`)
+                .join("\n")
+              systemPrompt += "\n\n" + compBlock
+            }
+          }
+        } catch {
+          // silently skip if component fetch fails — Aria still works without it
+        }
+      }
+
       // Editor mode: inject editor instructions
       if (aria().editorMode) {
-        systemPrompt += "\n\nEDITOR MODE: You are helping the site owner edit their website by voice. After each successful edit, confirm in one short sentence what changed. For remove_section and reorder_section, a confirmation modal will appear — tell the user to confirm or say yes/no. For publish_changes, announce success. Undo/redo are available by voice."
+        systemPrompt += "\n\nEDITOR MODE: You are helping the site owner edit their website by voice. After each successful edit, confirm in one short sentence what changed. For remove_section and reorder_section, a confirmation modal will appear — tell the user to confirm or say yes/no. For publish_changes, announce success. Undo/redo are available by voice. You can also add, edit, and remove atomic components from the page — users can say 'add a button', 'change the card color', 'remove the hero', etc."
       }
 
       ws.send(JSON.stringify({
