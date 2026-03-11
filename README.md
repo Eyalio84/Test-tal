@@ -7,7 +7,9 @@ StoreKit lets users launch a beautiful themed e-commerce store and edit every pi
 ## ✨ Features
 
 - **8 production-ready store themes** — jewelry, candy, bakery, flowers, wine, restaurant, portfolio, saas — each with its own brand, fonts, color palette, and product catalog
-- **Aria voice AI** — live Gemini WebSocket assistant with 3 contexts (platform, demo, member); edits content by voice, navigates the admin, answers questions about your store
+- **Aria voice AI** — live Gemini WebSocket assistant with 3 contexts (platform, template, member); edits content by voice, navigates products, answers questions, writes session test reports
+- **Session Report Pad** — floating pad where Aria writes color-coded test notes (observations, bugs, navigation, summaries); exportable as `.md`
+- **Aria changelog** — Aria knows her own upgrade history and can narrate recent capabilities on request
 - **Image Scout** — admin tool to curate CDN images: search Pexels or Gemini, compress to WebP, upload to Cloudflare R2, generate semantic embeddings for deduplication
 - **Site editor** — draft/publish content workflow; edit hero, products, navigation, and SEO by voice or direct input
 - **Stripe checkout** — full cart → checkout → order flow with Stripe Checkout Sessions and webhook confirmation
@@ -107,8 +109,9 @@ npm run dev
 Browser
   ├── Next.js App Router (React 19)
   │     ├── /                   Platform homepage (PlatformHero, DemoShowcase, Pricing)
-  │     ├── /demos/[themeId]    Live demo stores
-  │     ├── /products/[slug]    Product detail pages
+  │     ├── /templates/[themeId]           Live template stores + product pages + cart
+  │     ├── /templates/jewelry/products/   DB-backed owner store (real Stripe checkout)
+  │     ├── /products/[slug]    Product detail pages (owner store)
   │     ├── /cart + /checkout   Shopping cart + Stripe Checkout
   │     ├── /dashboard          User account + Aria memories + billing
   │     └── /admin/*            Admin panel (themes, editor, media, components, image-scout)
@@ -116,7 +119,7 @@ Browser
   ├── FloatingDock (global)
   │     └── Aria orb → Gemini Live WebSocket
   │
-  └── Zustand stores (aria, cart, canvas, wishlist, a11y)
+  └── Zustand stores (aria, cart, canvas, wishlist, a11y, reportPad)
 
 Server (Next.js API routes)
   ├── /api/auth/*           NextAuth v5 (Google OAuth)
@@ -129,9 +132,9 @@ Server (Next.js API routes)
 
 Gemini Live (WebSocket, client-side)
   └── useAriaLive.ts → buildAriaConfig(themeId) → live session
-        ├── Platform context: knows demos, themes, pricing
-        ├── Demo context:     store-focused, shows products
-        └── Member context:   full workspace nav + dev commands
+        ├── Platform context: knows templates, themes, pricing
+        ├── Template context: store-focused, full shopping AI (add to cart, navigate products)
+        └── Member context:   personal runtime assistant + debugger; writes to Report Pad
 
 External services
   ├── Neon PostgreSQL  ← Prisma ORM
@@ -148,13 +151,16 @@ app/                    Next.js App Router pages and API routes
   admin/                Admin panel pages (themes, editor, media, image-scout, components)
   api/                  API routes (auth, checkout, content, media, aria, admin)
   dashboard/            User account page
-  demos/[themeId]/      Live demo store pages
-  products/             Product listing + detail pages
+  templates/[themeId]/  Live template stores (product listing, product detail, cart)
+  templates/jewelry/    DB-backed owner store with real Stripe checkout (force-dynamic)
+  products/             Product listing + detail pages (owner store)
 components/
   admin/                Admin-specific components (AdminNav, etc.)
-  aria/                 AriaCommandDispatcher — executes voice commands
+  aria/                 AriaCommandDispatcher, ReportPad, ReportPadToggle
   layout/               Navbar, Footer, Providers, ThemeApplier
   platform/             Homepage sections (Hero, DemoShowcase, Pricing)
+  template/             TemplateAddToCart — Zustand cart for demo stores
+  templates/            TemplateAriaContext — sets ariaContext("template") on mount
   ui/                   Shared UI (FloatingDock, AccessibilityPanel, etc.)
 hooks/
   useAriaLive.ts        Gemini Live WebSocket + command execution engine
@@ -163,15 +169,17 @@ lib/
   auth.ts               NextAuth config + PrismaAdapter + Site auto-provision
   r2.ts                 Cloudflare R2 client + r2Key() / r2Url() helpers
   compress.ts           Sharp image compression → WebP
-  themeImages.ts        resolveTheme() — DB overrides + static fallbacks
+  themeImages.ts        resolveTheme() — DB overrides + static fallbacks (server-only)
+  ariaChangelog.ts      ARIA_CHANGELOG + buildChangelogPrompt() injected into system prompt
   embeddings.ts         Gemini embedding generation + pgvector search
   slotMap.ts            72 image slot definitions across 8 themes
   pexels.ts             Typed Pexels API wrapper
   validations.ts        Zod schemas for all API inputs
 store/
-  aria.ts               AriaStore — context, connection state, memories
-  cart.ts               Cart items + total
+  aria.ts               AriaStore — context ("platform"|"template"|"member"), themeId, memories
+  cart.ts               Cart items + total (Zustand persist)
   canvas.ts             Editor canvas state
+  reportPad.ts          Session Report Pad — entries, exportMarkdown(), Zustand persist
 themes/                 Static theme configs (fallback image URLs, brand data)
 prisma/                 Schema + migrations + seed
 scripts/                Standalone admin scripts (image migration, scout)
@@ -186,7 +194,9 @@ tests/                  Vitest unit tests
 
 ### Aria Voice AI
 
-Aria is a persistent Gemini Live WebSocket connection initiated from `useAriaLive.ts`. The system prompt is built dynamically per context (platform/demo/member) and injected when the user opens the orb. On page navigation, `useAriaPageContext.ts` sends a silent `turn_complete: false` update so Aria always knows the current page. Voice commands map to functions like `navigate_admin`, `describe_current_product`, `switch_theme`, and `image_scout_cdn_search`.
+Aria is a persistent Gemini Live WebSocket connection initiated from `useAriaLive.ts`. The system prompt is built dynamically per context (`platform` / `template` / `member`) at connect time and includes the Aria changelog (recent capability upgrades). On page navigation, `useAriaPageContext.ts` sends a silent `turn_complete: false` update so Aria always knows the current URL without reconnecting.
+
+Voice commands span shopping (`navigate_to_product`, `add_to_cart`, `recommend_product`), content editing (`update_site_content`, `switch_theme`), admin navigation, image curation, and session documentation (`write_to_report`, `summarize_session`, `get_changelog`). In member context, Aria acts as a personal runtime assistant and debugger, writing structured test notes to the Session Report Pad.
 
 ### Image Scout
 
@@ -266,8 +276,9 @@ Google OAuth must have the Cloud Run callback URL registered:
 | PP Platform Pivot | ✅ Complete |
 | DI Development Infrastructure | ✅ Complete |
 | Image Scout CDN Tool | ✅ Complete |
-| P4 Atomic Component Library | 🔄 In progress |
-| P5 Domain Types + Layout Library | 📋 Planned |
-| P6 Public Launch | 📋 Planned |
+| P4 Atomic Component Library | ✅ Complete |
+| P5 Templates + Aria Assistant | ✅ Complete — product pages, Report Pad, changelog |
+| EP Editor Platform | 📋 Planned — inline edit overlay on live site |
+| IR Infrastructure Readiness | 📋 Planned — Upstash rate limiting, Neon RLS |
 
 See `docs/MASTER-ROADMAP.md` for full details.

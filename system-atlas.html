@@ -535,8 +535,9 @@
     <p>
       <span class="pill pill-green">✓ Live on Cloud Run</span>&nbsp;
       <span class="pill pill-green">✓ Auth + payments working</span>&nbsp;
-      <span class="pill pill-amber">⟳ P4 Component Library in progress</span>&nbsp;
-      <span class="pill pill-blue">→ P5 Domain Types planned</span>
+      <span class="pill pill-green">✓ P4 Component Library complete</span>&nbsp;
+      <span class="pill pill-green">✓ P5 Templates + Aria Assistant complete</span>&nbsp;
+      <span class="pill pill-blue">→ EP Editor Platform next</span>
     </p>
 
     <h3>Key URLs</h3>
@@ -545,7 +546,7 @@
       <tr><td>Dev</td><td><code>http://localhost:3000</code></td></tr>
       <tr><td>Production (Cloud Run)</td><td><code>https://tal-store-233162846070.europe-west1.run.app</code></td></tr>
       <tr><td>Admin panel</td><td><code>/admin</code> (ADMIN_EMAIL only)</td></tr>
-      <tr><td>Demo stores</td><td><code>/demos/[themeId]</code></td></tr>
+      <tr><td>Template stores</td><td><code>/templates/[themeId]</code></td></tr>
     </table>
   </section>
 
@@ -653,13 +654,15 @@ npx prisma db seed</pre>
     <div class="arch-box">
 <span class="arch-highlight">Browser</span>
 ├── Next.js App Router (React 19 — SSR + client components)
-│   ├── /                   Platform homepage (Hero, DemoShowcase, Pricing)
-│   ├── /demos/[themeId]    Live demo stores (reads theme from DB)
-│   ├── /products/[slug]    Product detail page
-│   ├── /cart               Cart page (Zustand cart store)
-│   ├── /checkout           Stripe Checkout redirect
-│   ├── /dashboard          User account (auth required)
-│   └── /admin/*            Admin panel (ADMIN_EMAIL only)
+│   ├── /                              Platform homepage (Hero, DemoShowcase, Pricing)
+│   ├── /templates/[themeId]           Live template stores (static THEMES config)
+│   ├── /templates/[themeId]/products/[slug]  Per-theme product detail + TemplateAddToCart
+│   ├── /templates/jewelry/products/[slug]    DB-backed owner store (force-dynamic, Stripe)
+│   ├── /products/[slug]               Owner store product detail
+│   ├── /cart                          Cart page (Zustand cart store)
+│   ├── /checkout                      Stripe Checkout redirect
+│   ├── /dashboard                     User account (auth required)
+│   └── /admin/*                       Admin panel (ADMIN_EMAIL only)
 │
 ├── <span class="arch-highlight">FloatingDock</span> (rendered in root layout, global)
 │   ├── 🔊 Aria orb  → Gemini Live WebSocket (useAriaLive.ts)
@@ -976,18 +979,18 @@ return {
       <tr><th>Context</th><th>Triggered when</th><th>Knows about</th></tr>
       <tr>
         <td><code>"platform"</code></td>
-        <td><code>/</code>, <code>/demos</code>, <code>/pricing</code></td>
-        <td>All 8 demos, theme names, pricing tiers, how to sign up</td>
+        <td><code>/</code>, <code>/templates</code>, <code>/pricing</code></td>
+        <td>All 8 templates, theme names, pricing tiers, how to sign up</td>
       </tr>
       <tr>
-        <td><code>"demo"</code></td>
-        <td><code>/demos/[themeId]</code></td>
-        <td>The specific demo store's products, pricing, brand</td>
+        <td><code>"template"</code></td>
+        <td><code>/templates/[themeId]</code></td>
+        <td>Full shopping AI — products, add to cart, navigate, recommend</td>
       </tr>
       <tr>
         <td><code>"member"</code></td>
         <td>Dashboard, admin, products, checkout</td>
-        <td>Full workspace navigation, dev commands, editor shortcuts</td>
+        <td>Personal runtime assistant + debugger — edits content, writes to Report Pad, documents test sessions</td>
       </tr>
     </table>
 
@@ -1006,6 +1009,13 @@ return {
       <tr><td><code>list_components</code></td><td>Read the component registry</td></tr>
       <tr><td><code>image_scout_search</code></td><td>Trigger a Pexels/Gemini image search</td></tr>
       <tr><td><code>image_scout_cdn_search</code></td><td>Semantic search of existing CDN catalog</td></tr>
+      <tr><td><code>navigate_to_product</code></td><td>Navigate to product page (context-aware: /templates/… vs /products/…)</td></tr>
+      <tr><td><code>add_to_cart</code></td><td>Add product to Zustand cart (template context)</td></tr>
+      <tr><td><code>recommend_product</code></td><td>Pick a product from catalog, optionally by budget</td></tr>
+      <tr><td><code>get_changelog</code></td><td>Read recent Aria capability upgrades aloud</td></tr>
+      <tr><td><code>write_to_report</code></td><td>Write a typed entry to the Session Report Pad (silent)</td></tr>
+      <tr><td><code>clear_report</code></td><td>Clear all Report Pad entries</td></tr>
+      <tr><td><code>summarize_session</code></td><td>Generate session summary and write to Report Pad</td></tr>
       <tr><td><code>save_memory</code></td><td>Persist a key-value memory (paid tiers)</td></tr>
       <tr><td><code>recall_memory</code></td><td>Read back stored memories</td></tr>
     </table>
@@ -1018,6 +1028,10 @@ return {
       <tr><td><code>store/aria.ts</code></td><td>Zustand store: context, themeId, isConnected, memories</td></tr>
       <tr><td><code>components/aria/AriaCommandDispatcher.tsx</code></td><td>Handles function calls from Aria → executes commands</td></tr>
       <tr><td><code>components/ui/FloatingDock.tsx</code></td><td>Aria orb UI (3 buttons: voice, a11y, WhatsApp)</td></tr>
+      <tr><td><code>components/aria/ReportPad.tsx</code></td><td>Floating Session Report Pad — color-coded entries, copy/download as .md</td></tr>
+      <tr><td><code>components/aria/ReportPadToggle.tsx</code></td><td>Bottom-left toggle with bug-count badge</td></tr>
+      <tr><td><code>store/reportPad.ts</code></td><td>Zustand persist store — addEntry(), clearAll(), exportMarkdown()</td></tr>
+      <tr><td><code>lib/ariaChangelog.ts</code></td><td>ARIA_CHANGELOG array + buildChangelogPrompt() → injected at connect time</td></tr>
       <tr><td><code>app/api/aria/memory/</code></td><td>Memory CRUD endpoints</td></tr>
     </table>
 
@@ -1401,17 +1415,22 @@ gcloud run deploy tal-store \
       </tr>
       <tr>
         <td>P4</td>
-        <td>Atomic Component Library — SVG previews, component palette, E2E tests</td>
-        <td><span class="pill pill-amber">⟳ In progress</span></td>
+        <td>Atomic Component Library — SVG previews, component palette, 163 tests</td>
+        <td><span class="pill pill-green">✓ Complete</span></td>
       </tr>
       <tr>
         <td>P5</td>
-        <td>Domain Types + Layout Library — Store, Blog, Recipe, Portfolio, Agency layouts</td>
-        <td><span class="pill pill-muted">📋 Planned</span></td>
+        <td>Templates + Aria Assistant — product pages per theme, Report Pad, changelog, 4 new Aria functions</td>
+        <td><span class="pill pill-green">✓ Complete</span></td>
       </tr>
       <tr>
-        <td>P6</td>
-        <td>Public Launch — rate limiting, PostHog analytics, background jobs</td>
+        <td>EP</td>
+        <td>Editor Platform — inline edit overlay on live site, floating config panels</td>
+        <td><span class="pill pill-blue">→ Next</span></td>
+      </tr>
+      <tr>
+        <td>IR</td>
+        <td>Infrastructure Readiness — Upstash rate limiting, Neon RLS, Resend email</td>
         <td><span class="pill pill-muted">📋 Planned</span></td>
       </tr>
     </table>
