@@ -11,7 +11,7 @@ export const uploadSchema = z.object({
 export type UploadInput = z.infer<typeof uploadSchema>
 
 // ── Component registry ─────────────────────────────────────────────────────
-const COMPONENT_CATEGORIES = [
+export const COMPONENT_CATEGORIES = [
   "button", "input", "select", "card", "overlay", "nav", "section",
   "badge", "data-display", "feedback", "form", "image", "dropdown", "slider",
   "modal", "popover", "tooltip", "dialog", "alert-dialog", "breadcrumb",

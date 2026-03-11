@@ -13,7 +13,8 @@ export async function resolveTheme(themeId: string): Promise<ThemeConfig> {
   const overrides = await prisma.themeImage.findMany({ where: { themeId } })
   if (overrides.length === 0) return base
 
-  const bySlot = new Map(overrides.map((r) => [r.slot, r.url]))
+  // Cache-buster: ?v=timestamp ensures browsers fetch fresh content after Scout uploads
+  const bySlot = new Map(overrides.map((r) => [r.slot, `${r.url}?v=${r.updatedAt.getTime()}`]))
 
   return {
     ...base,

@@ -3,10 +3,10 @@
 import { useEffect } from "react"
 import { useAria } from "@/store/aria"
 
-export function DemoAriaContext() {
+export function TemplateAriaContext() {
   const setAriaContext = useAria((s) => s.setAriaContext)
   useEffect(() => {
-    setAriaContext("demo")
+    setAriaContext("template")
   }, [setAriaContext])
   return null
 }

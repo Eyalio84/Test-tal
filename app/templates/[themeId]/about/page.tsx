@@ -7,7 +7,7 @@ export async function generateStaticParams() {
   return Object.keys(THEMES).map((id) => ({ themeId: id }))
 }
 
-export default async function DemoAboutPage({ params }: { params: Promise<{ themeId: string }> }) {
+export default async function TemplateAboutPage({ params }: { params: Promise<{ themeId: string }> }) {
   const { themeId } = await params
   const theme = await resolveTheme(themeId).catch(() => null)
   if (!theme) notFound()

@@ -2,6 +2,7 @@
 
 import React, { useRef } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { THEMES } from "@/lib/theme"
 
@@ -119,9 +120,18 @@ export default function AdminMediaPage() {
                   </div>
                 )}
               </div>
-              <div className="px-2 py-1.5">
-                <p className="text-xs font-medium text-ink truncate">{label}</p>
-                <p className="text-[10px] text-ink/40 truncate">{slot}</p>
+              <div className="px-2 py-1.5 flex items-center justify-between gap-1">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-ink truncate">{label}</p>
+                  <p className="text-[10px] text-ink/40 truncate">{slot}</p>
+                </div>
+                <Link
+                  href={`/admin/image-scout?theme=${activeTheme}&slot=${slot}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] px-2 py-0.5 bg-stone-900 text-white rounded hover:bg-stone-700"
+                >
+                  Scout →
+                </Link>
               </div>
             </div>
           )

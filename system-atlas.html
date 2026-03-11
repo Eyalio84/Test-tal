@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StoreKit — System Atlas</title>
+<style>
+  /* ── Reset & Variables ────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0a0a0a;
+    --surface:   #111111;
+    --surface2:  #161616;
+    --border:    #222222;
+    --border2:   #2a2a2a;
+    --accent:    #c9a96e;
+    --accent2:   #e8c98a;
+    --text:      #e2e8f0;
+    --muted:     #64748b;
+    --dim:       #94a3b8;
+    --code-bg:   #1e293b;
+    --green:     #22c55e;
+    --red:       #ef4444;
+    --blue:      #3b82f6;
+    --amber:     #f59e0b;
+    --sidebar-w: 240px;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-mono: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+  }
+
+  [data-theme="light"] {
+    --bg:        #f8f7f5;
+    --surface:   #ffffff;
+    --surface2:  #f1ede8;
+    --border:    #e2ddd6;
+    --border2:   #d4cfc8;
+    --text:      #1a1814;
+    --muted:     #78716c;
+    --dim:       #57534e;
+    --code-bg:   #f1f5f9;
+    --accent:    #b8933e;
+    --accent2:   #a07830;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.65;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ────────────────────────────────────────────────────────── */
+  #sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+  }
+
+  #sidebar-header {
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #sidebar-header h1 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+  }
+
+  #sidebar-header p {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  #search-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 10px;
+    font-size: 13px;
+    border-radius: 6px;
+    width: 100%;
+    margin-top: 10px;
+    font-family: var(--font-sans);
+    outline: none;
+  }
+
+  #search-box:focus { border-color: var(--accent); }
+
+  #sidebar-nav { padding: 8px 0; flex: 1; }
+
+  .nav-group { margin-bottom: 4px; }
+
+  .nav-group-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 16px 4px;
+  }
+
+  .nav-item {
+    display: block;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: var(--dim);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    cursor: pointer;
+  }
+
+  .nav-item:hover, .nav-item.active {
+    color: var(--text);
+    background: var(--surface2);
+    border-left-color: var(--accent);
+  }
+
+  .nav-item.active { color: var(--accent); font-weight: 500; }
+
+  #sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  #theme-toggle {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  #theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+
+  /* ── Main Content ───────────────────────────────────────────────────── */
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    padding: 40px 48px;
+    max-width: calc(var(--sidebar-w) + 860px);
+  }
+
+  /* ── Header ────────────────────────────────────────────────────────── */
+  #page-header {
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #page-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  #page-header p { color: var(--muted); font-size: 14px; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-right: 6px;
+  }
+
+  .badge-green  { background: #14532d; color: #4ade80; }
+  .badge-amber  { background: #451a03; color: #fb923c; }
+  .badge-blue   { background: #1e3a5f; color: #60a5fa; }
+  .badge-purple { background: #2e1065; color: #c084fc; }
+
+  /* ── Sections ──────────────────────────────────────────────────────── */
+  .doc-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    border-radius: 0 6px 6px 0;
+  }
+
+  .doc-section h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .doc-section h2 .section-icon {
+    font-size: 18px;
+    opacity: 0.8;
+  }
+
+  .doc-section .lead {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 20px;
+    border-left: 2px solid var(--border2);
+    padding-left: 12px;
+  }
+
+  .doc-section h3 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 24px 0 10px;
+  }
+
+  .doc-section p { color: var(--dim); margin-bottom: 12px; line-height: 1.7; }
+
+  .doc-section ul, .doc-section ol {
+    color: var(--dim);
+    margin-left: 20px;
+    margin-bottom: 12px;
+  }
+
+  .doc-section li { margin-bottom: 4px; line-height: 1.6; }
+
+  /* Collapsible h3 */
+  .collapsible-header {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .collapsible-header::after {
+    content: "▾";
+    font-size: 11px;
+    color: var(--muted);
+    transition: transform 0.2s;
+    margin-left: auto;
+  }
+
+  .collapsible-header.collapsed::after { transform: rotate(-90deg); }
+
+  .collapsible-content { overflow: hidden; transition: max-height 0.25s ease; }
+
+  /* ── Tables ────────────────────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 8px 12px;
+    color: var(--dim);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+
+  td code, th code { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+
+  /* ── Code Blocks ───────────────────────────────────────────────────── */
+  .code-block {
+    position: relative;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    margin: 12px 0;
+    overflow-x: auto;
+  }
+
+  .code-block pre {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    color: #e2e8f0;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  /* ── Callouts ──────────────────────────────────────────────────────── */
+  .callout {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--amber);
+    padding: 12px 16px;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    color: var(--dim);
+    margin: 12px 0;
+  }
+
+  .callout.info  { border-left-color: var(--blue); }
+  .callout.ok    { border-left-color: var(--green); }
+  .callout strong { color: var(--text); }
+
+  /* ── Inline code ───────────────────────────────────────────────────── */
+  code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--code-bg);
+    color: var(--accent);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  /* ── Status pills ──────────────────────────────────────────────────── */
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .pill-green  { background: #14532d30; color: #4ade80; border: 1px solid #14532d; }
+  .pill-amber  { background: #45260320; color: #fbbf24; border: 1px solid #78350f; }
+  .pill-blue   { background: #1e3a5f30; color: #60a5fa; border: 1px solid #1e3a5f; }
+  .pill-muted  { background: #1e293b;   color: #64748b; border: 1px solid #334155; }
+
+  /* ── Architecture diagram ──────────────────────────────────────────── */
+  .arch-box {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 20px 24px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--dim);
+    line-height: 1.8;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .arch-highlight { color: var(--accent); }
+
+  /* ── Grid ──────────────────────────────────────────────────────────── */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    border-radius: 4px;
+  }
+
+  .stat-card .label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .stat-card .value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* ── Hidden nav items during search ───────────────────────────────── */
+  .nav-item.hidden { display: none; }
+
+  /* ── Scrollbar ─────────────────────────────────────────────────────── */
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* ── Responsive ────────────────────────────────────────────────────── */
+  @media (max-width: 768px) {
+    :root { --sidebar-w: 0px; }
+    #sidebar { display: none; }
+    #main { margin-left: 0; padding: 20px 16px; }
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ SIDEBAR ══ -->
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <h1>StoreKit</h1>
+    <p>System Atlas · v0.1.0</p>
+    <input type="text" id="search-box" placeholder="Search sections…" autocomplete="off">
+  </div>
+
+  <div id="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-group-label">Getting Started</div>
+      <a class="nav-item" href="#overview">Overview</a>
+      <a class="nav-item" href="#quick-start">Quick Start</a>
+      <a class="nav-item" href="#env-vars">Environment Variables</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Architecture</div>
+      <a class="nav-item" href="#architecture">System Architecture</a>
+      <a class="nav-item" href="#tech-stack">Tech Stack</a>
+      <a class="nav-item" href="#data-models">Data Models</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Core Features</div>
+      <a class="nav-item" href="#theme-system">Theme System</a>
+      <a class="nav-item" href="#aria-voice">Aria Voice AI</a>
+      <a class="nav-item" href="#image-scout">Image Scout</a>
+      <a class="nav-item" href="#stripe-checkout">Stripe Checkout</a>
+      <a class="nav-item" href="#site-editor">Site Editor</a>
+      <a class="nav-item" href="#component-registry">Component Registry</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">API Reference</div>
+      <a class="nav-item" href="#api-reference">API Routes</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Admin &amp; Dev</div>
+      <a class="nav-item" href="#admin-panel">Admin Panel</a>
+      <a class="nav-item" href="#dev-tools">Developer Tools</a>
+      <a class="nav-item" href="#deployment">Deployment</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Reference</div>
+      <a class="nav-item" href="#roadmap">Roadmap</a>
+      <a class="nav-item" href="#gotchas">Gotchas</a>
+    </div>
+  </div>
+
+  <div id="sidebar-footer">
+    <span>Last updated: 2026-03-10</span>
+    <button id="theme-toggle">☀ Light</button>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════════ MAIN CONTENT ══ -->
+<main id="main">
+
+  <div id="page-header">
+    <h1>StoreKit — System Atlas</h1>
+    <p>Interactive reference manual · architecture · API · data models · gotchas</p>
+    <div style="margin-top: 12px;">
+      <span class="badge badge-green">LIVE</span>
+      <span class="badge badge-blue">Next.js 16</span>
+      <span class="badge badge-purple">Gemini Live</span>
+      <span class="badge badge-amber">Stripe</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ OVERVIEW ══ -->
+  <section id="overview" class="doc-section">
+    <h2><span class="section-icon">◈</span> Overview</h2>
+    <p class="lead">StoreKit is a voice-AI website builder platform. Merchants pick a theme, then talk to Aria — a live Gemini-powered AI — to edit every part of their store.</p>
+
+    <div class="grid-2">
+      <div class="stat-card"><div class="label">Themes</div><div class="value">8</div></div>
+      <div class="stat-card"><div class="label">Image Slots</div><div class="value">72</div></div>
+      <div class="stat-card"><div class="label">Aria Contexts</div><div class="value">3</div></div>
+      <div class="stat-card"><div class="label">Subscription Tiers</div><div class="value">4</div></div>
+    </div>
+
+    <h3>What it is</h3>
+    <p>Users log in with Google, get a <code>Site</code> record provisioned automatically, choose one of 8 store themes, and can edit all content by speaking to Aria (a persistent Gemini Live WebSocket connection). The platform handles payments via Stripe, image hosting via Cloudflare R2, and stores all content in Neon PostgreSQL.</p>
+    <p>The admin panel gives the store owner tools to: switch themes, edit content visually, upload product images, curate CDN images with AI, and manage their subscription. The Image Scout tool uses Pexels + Gemini to fill all 72 image slots across all 8 themes.</p>
+
+    <h3>Current status</h3>
+    <p>
+      <span class="pill pill-green">✓ Live on Cloud Run</span>&nbsp;
+      <span class="pill pill-green">✓ Auth + payments working</span>&nbsp;
+      <span class="pill pill-amber">⟳ P4 Component Library in progress</span>&nbsp;
+      <span class="pill pill-blue">→ P5 Domain Types planned</span>
+    </p>
+
+    <h3>Key URLs</h3>
+    <table>
+      <tr><th>Environment</th><th>URL</th></tr>
+      <tr><td>Dev</td><td><code>http://localhost:3000</code></td></tr>
+      <tr><td>Production (Cloud Run)</td><td><code>https://tal-store-233162846070.europe-west1.run.app</code></td></tr>
+      <tr><td>Admin panel</td><td><code>/admin</code> (ADMIN_EMAIL only)</td></tr>
+      <tr><td>Demo stores</td><td><code>/demos/[themeId]</code></td></tr>
+    </table>
+  </section>
+
+  <!-- ══════════════════════════════════════════ QUICK START ══ -->
+  <section id="quick-start" class="doc-section">
+    <h2><span class="section-icon">▶</span> Quick Start</h2>
+    <p class="lead">From zero to running dev server in under 10 minutes.</p>
+
+    <h3>1 — Clone and install</h3>
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre>git clone &lt;repo-url&gt;
+cd tal-boilerplate
+npm install</pre>
+    </div>
+
+    <h3>2 — Configure environment</h3>
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre>cp .env.example .env.local
+# Edit .env.local — fill in every required variable (see Environment Variables section)</pre>
+    </div>
+
+    <h3>3 — Set up the database</h3>
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre># Push schema to Neon (or any PostgreSQL) and regenerate Prisma client
+npx prisma db push
+
+# Enable pgvector extension (required for Image Scout embeddings)
+psql $DATABASE_URL -c "CREATE EXTENSION IF NOT EXISTS vector;"
+psql $DATABASE_URL -c "ALTER TABLE \"CdnImage\" ADD COLUMN IF NOT EXISTS embedding vector(768);"
+
+# Seed with sample products + component registry
+npx prisma db seed</pre>
+    </div>
+
+    <h3>4 — Start dev server</h3>
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre>npm run dev
+# → http://localhost:3000</pre>
+    </div>
+
+    <h3>5 — Register Google OAuth redirect</h3>
+    <p>In Google Cloud Console → OAuth 2.0 Client, add authorized redirect URI:</p>
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre>http://localhost:3000/api/auth/callback/google</pre>
+    </div>
+
+    <div class="callout">
+      <strong>Dev port note:</strong> The dev server runs on port 3000 (locked in <code>package.json</code> and <code>next.config.ts</code>). If you change the port, update your Google OAuth credentials and <code>NEXT_PUBLIC_SITE_URL</code>.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ ENV VARS ══ -->
+  <section id="env-vars" class="doc-section">
+    <h2><span class="section-icon">⚙</span> Environment Variables</h2>
+    <p class="lead">All variables are Zod-validated at startup via <code>env.ts</code> using <code>@t3-oss/env-nextjs</code>. The app refuses to start if any required var is missing.</p>
+
+    <h3>Server-side (never sent to browser)</h3>
+    <table>
+      <tr><th>Variable</th><th>Format</th><th>Description</th></tr>
+      <tr><td><code>DATABASE_URL</code></td><td>URL</td><td>Neon PostgreSQL connection string</td></tr>
+      <tr><td><code>NEXTAUTH_SECRET</code></td><td>string</td><td>JWT signing secret (any long random string)</td></tr>
+      <tr><td><code>GOOGLE_CLIENT_ID</code></td><td>string</td><td>Google OAuth app client ID</td></tr>
+      <tr><td><code>GOOGLE_CLIENT_SECRET</code></td><td>string</td><td>Google OAuth app client secret</td></tr>
+      <tr><td><code>ADMIN_EMAIL</code></td><td>email</td><td>The one email address that gets admin access</td></tr>
+      <tr><td><code>STRIPE_SECRET_KEY</code></td><td><code>sk_...</code></td><td>Stripe secret key</td></tr>
+      <tr><td><code>STRIPE_WEBHOOK_SECRET</code></td><td><code>whsec_...</code></td><td>Stripe webhook signing secret</td></tr>
+      <tr><td><code>STRIPE_PRICE_BASIC</code></td><td><code>price_...</code></td><td>Stripe price ID for Basic subscription</td></tr>
+      <tr><td><code>STRIPE_PRICE_BUILDER</code></td><td><code>price_...</code></td><td>Stripe price ID for Builder subscription</td></tr>
+      <tr><td><code>STRIPE_PRICE_PRO</code></td><td><code>price_...</code></td><td>Stripe price ID for Pro subscription</td></tr>
+      <tr><td><code>GEMINI_API_KEY</code></td><td>string</td><td>Google Gemini API key (server-side calls)</td></tr>
+      <tr><td><code>CLOUDFLARE_ACCOUNT_ID</code></td><td>string</td><td>Cloudflare account ID</td></tr>
+      <tr><td><code>CLOUDFLARE_R2_ACCESS_KEY_ID</code></td><td>string</td><td>R2 S3-compatible access key ID</td></tr>
+      <tr><td><code>CLOUDFLARE_R2_SECRET_ACCESS_KEY</code></td><td>string</td><td>R2 S3-compatible secret access key</td></tr>
+      <tr><td><code>CLOUDFLARE_R2_BUCKET_NAME</code></td><td>string</td><td>R2 bucket name</td></tr>
+      <tr><td><code>CLOUDFLARE_R2_PUBLIC_URL</code></td><td>URL</td><td>Public CDN base URL for R2 objects</td></tr>
+      <tr><td><code>PEXEL_API_KEY</code></td><td>string</td><td>Pexels API key for Image Scout</td></tr>
+      <tr><td><code>SENTRY_DSN</code></td><td>URL</td><td>(Optional) Sentry error tracking DSN</td></tr>
+    </table>
+
+    <h3>Client-side (prefixed NEXT_PUBLIC_, sent to browser)</h3>
+    <table>
+      <tr><th>Variable</th><th>Format</th><th>Description</th></tr>
+      <tr><td><code>NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code></td><td><code>pk_...</code></td><td>Stripe publishable key</td></tr>
+      <tr><td><code>NEXT_PUBLIC_SITE_URL</code></td><td>URL</td><td>Full site URL (used for OAuth callbacks)</td></tr>
+      <tr><td><code>NEXT_PUBLIC_GEMINI_API_KEY</code></td><td>string</td><td>Gemini API key for client-side Aria WebSocket</td></tr>
+      <tr><td><code>NEXT_PUBLIC_WHATSAPP_NUMBER</code></td><td>string</td><td>WhatsApp number shown in FloatingDock</td></tr>
+      <tr><td><code>NEXT_PUBLIC_THEME</code></td><td>string</td><td>(Optional) Override active theme for static builds</td></tr>
+    </table>
+
+    <div class="callout">
+      <strong>Build-time bypass:</strong> Set <code>SKIP_ENV_VALIDATION=true</code> to skip validation during <code>next build</code> (used in Dockerfile). Never do this in production runtime.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ ARCHITECTURE ══ -->
+  <section id="architecture" class="doc-section">
+    <h2><span class="section-icon">⬡</span> System Architecture</h2>
+    <p class="lead">Next.js App Router with server components doing DB reads and client components managing interactive state via Zustand. Aria connects directly from the browser to Gemini Live over WebSocket.</p>
+
+    <div class="arch-box">
+<span class="arch-highlight">Browser</span>
+├── Next.js App Router (React 19 — SSR + client components)
+│   ├── /                   Platform homepage (Hero, DemoShowcase, Pricing)
+│   ├── /demos/[themeId]    Live demo stores (reads theme from DB)
+│   ├── /products/[slug]    Product detail page
+│   ├── /cart               Cart page (Zustand cart store)
+│   ├── /checkout           Stripe Checkout redirect
+│   ├── /dashboard          User account (auth required)
+│   └── /admin/*            Admin panel (ADMIN_EMAIL only)
+│
+├── <span class="arch-highlight">FloatingDock</span> (rendered in root layout, global)
+│   ├── 🔊 Aria orb  → Gemini Live WebSocket (useAriaLive.ts)
+│   ├── ♿ A11y panel → AccessibilityPanel
+│   └── 💬 WhatsApp  → direct link
+│
+└── Zustand stores (aria, cart, canvas, wishlist, a11y)
+    └── useAriaPageContext() auto-syncs context from pathname
+
+<span class="arch-highlight">Next.js API Routes (server-side)</span>
+├── /api/auth/*           NextAuth v5 (Google OAuth + PrismaAdapter)
+├── /api/checkout         Creates Stripe Checkout Session
+├── /api/webhooks/stripe  Processes Stripe events (payment.succeeded)
+├── /api/media/upload     Compresses + uploads image to R2
+├── /api/content/*        Draft/publish SiteContent
+├── /api/admin/image-scout/*  Image Scout pipeline
+│   ├── /search           Pexels search or Gemini-refined search
+│   ├── /upload           Download → compress → R2 → DB + embedding
+│   └── /catalog          Browse CDN catalog (theme filter or semantic search)
+├── /api/subscription/*   Stripe Checkout + Customer Portal
+└── /api/aria/memory      Aria memory CRUD (paid users only)
+
+<span class="arch-highlight">External Services</span>
+├── Neon PostgreSQL   ← Prisma v5 ORM + pgvector extension
+├── Cloudflare R2     ← Object storage (S3-compatible)
+├── Stripe            ← Payments + subscriptions
+├── Gemini Live API   ← Aria real-time voice WebSocket
+├── Gemini REST API   ← Image Scout embeddings (server-side)
+└── Pexels API        ← Stock photography for Image Scout</div>
+
+    <h3>Request flow example: "User buys a product"</h3>
+    <ol>
+      <li>User clicks <strong>Add to Cart</strong> → Zustand <code>cart.ts</code> store updated client-side</li>
+      <li>User goes to <code>/checkout</code> → <code>POST /api/checkout</code> with cart items</li>
+      <li>Server creates Stripe Checkout Session with line items → returns <code>sessionUrl</code></li>
+      <li>Browser redirects to Stripe-hosted checkout page</li>
+      <li>After payment → Stripe POSTs <code>checkout.session.completed</code> to <code>/api/webhooks/stripe</code></li>
+      <li>Webhook handler writes <code>Order</code> + <code>OrderItem</code> records in DB</li>
+      <li>User redirected back to <code>/checkout?success=true</code></li>
+    </ol>
+
+    <h3>Request flow example: "Aria edits hero text by voice"</h3>
+    <ol>
+      <li>User taps Aria orb in FloatingDock → <code>useAriaLive.ts</code> opens WebSocket to Gemini</li>
+      <li><code>buildAriaConfig(themeId)</code> builds system prompt with current context + page</li>
+      <li>User speaks: "Change the hero headline to 'Handcrafted with love'"</li>
+      <li>Gemini responds with function call: <code>update_site_content({ field: "hero.headline", value: "..." })</code></li>
+      <li><code>AriaCommandDispatcher</code> handles the function call → <code>POST /api/content/update</code></li>
+      <li>DB updated, page re-renders with new content</li>
+    </ol>
+  </section>
+
+  <!-- ══════════════════════════════════════════ TECH STACK ══ -->
+  <section id="tech-stack" class="doc-section">
+    <h2><span class="section-icon">⬢</span> Tech Stack</h2>
+    <p class="lead">Every layer of the stack and why it was chosen.</p>
+
+    <table>
+      <tr>
+        <th>Layer</th><th>Technology</th><th>Why</th>
+      </tr>
+      <tr>
+        <td>Framework</td>
+        <td><code>Next.js 16</code> App Router</td>
+        <td>Server components for SSR + client components for Aria/cart. <code>force-dynamic</code> on all pages for per-request DB reads.</td>
+      </tr>
+      <tr>
+        <td>UI runtime</td>
+        <td>React 19</td>
+        <td>Concurrent features, stable server components.</td>
+      </tr>
+      <tr>
+        <td>Database</td>
+        <td>Neon PostgreSQL + pgvector</td>
+        <td>Serverless PostgreSQL with branching. pgvector extension enables 768-dim vector similarity search for Image Scout embeddings.</td>
+      </tr>
+      <tr>
+        <td>ORM</td>
+        <td>Prisma v5</td>
+        <td>Type-safe DB access. Schema in <code>prisma/schema.prisma</code>. <code>$queryRawUnsafe</code> used for vector operations (pgvector type not natively supported).</td>
+      </tr>
+      <tr>
+        <td>Auth</td>
+        <td>NextAuth v5 + PrismaAdapter</td>
+        <td>Google OAuth only. Session callback auto-provisions <code>Site</code> on first login. No <code>pages</code> override — doing so causes OAuth redirect loops.</td>
+      </tr>
+      <tr>
+        <td>Voice AI</td>
+        <td>Gemini Live API (<code>gemini-2.5-flash</code>)</td>
+        <td>Real-time bidirectional voice WebSocket. Supports function calling for editing commands.</td>
+      </tr>
+      <tr>
+        <td>Embeddings</td>
+        <td>Gemini <code>gemini-embedding-001</code></td>
+        <td>768-dim embeddings (MRL-truncated from 3072). Used for CDN semantic search + duplicate detection.</td>
+      </tr>
+      <tr>
+        <td>Image CDN</td>
+        <td>Cloudflare R2</td>
+        <td>S3-compatible object storage. Used via <code>@aws-sdk/client-s3</code>. All images served from public R2 bucket URL.</td>
+      </tr>
+      <tr>
+        <td>Image processing</td>
+        <td>Sharp</td>
+        <td>All uploads compressed to WebP at 1600px max width before R2 storage. via <code>lib/compress.ts</code>.</td>
+      </tr>
+      <tr>
+        <td>Payments</td>
+        <td>Stripe</td>
+        <td>Checkout Sessions for one-time purchases + Stripe subscriptions for plans + Customer Portal for self-service plan management.</td>
+      </tr>
+      <tr>
+        <td>Client state</td>
+        <td>Zustand v5</td>
+        <td>4 stores: <code>aria.ts</code> (voice), <code>cart.ts</code> (shopping), <code>canvas.ts</code> (editor), <code>wishlist.ts</code> + <code>a11y.ts</code>.</td>
+      </tr>
+      <tr>
+        <td>Server state</td>
+        <td>TanStack Query v5</td>
+        <td>Server data fetched via TQ — never raw <code>useState + useEffect + fetch</code>.</td>
+      </tr>
+      <tr>
+        <td>Styling</td>
+        <td>Tailwind CSS v4</td>
+        <td>Theme CSS vars injected at runtime by <code>ThemeApplier</code>. Each of the 8 themes has its own color palette.</td>
+      </tr>
+      <tr>
+        <td>Email</td>
+        <td>Resend</td>
+        <td>Transactional email. Used for order confirmations and contact form.</td>
+      </tr>
+      <tr>
+        <td>Monitoring</td>
+        <td>Sentry</td>
+        <td>Enabled in production only (<code>instrumentation.ts</code>). Disabled in dev to reduce noise.</td>
+      </tr>
+      <tr>
+        <td>Linting</td>
+        <td>Biome v2</td>
+        <td>Replaces ESLint + Prettier. Config in <code>biome.json</code>. Schema must be <code>2.x.x</code>.</td>
+      </tr>
+      <tr>
+        <td>Tests</td>
+        <td>Vitest + Testing Library</td>
+        <td>Unit tests in <code>tests/</code>. Run <code>npm test</code> before every commit.</td>
+      </tr>
+      <tr>
+        <td>Deployment</td>
+        <td>Google Cloud Run</td>
+        <td>Containerized via <code>Dockerfile</code>. All env vars set in Cloud Run service configuration.</td>
+      </tr>
+    </table>
+  </section>
+
+  <!-- ══════════════════════════════════════════ DATA MODELS ══ -->
+  <section id="data-models" class="doc-section">
+    <h2><span class="section-icon">⬛</span> Data Models</h2>
+    <p class="lead">All models defined in <code>prisma/schema.prisma</code>. Neon PostgreSQL with pgvector extension enabled.</p>
+
+    <h3 class="collapsible-header">User + Site (multi-tenant core)</h3>
+    <div class="collapsible-content">
+      <table>
+        <tr><th>Model</th><th>Key fields</th><th>Notes</th></tr>
+        <tr>
+          <td><code>User</code></td>
+          <td><code>id, email, subscriptionTier, customerId, subscriptionId</code></td>
+          <td>Google OAuth. <code>subscriptionTier</code>: <code>free | basic | builder | pro</code>. <code>customerId</code> is Stripe customer ID.</td>
+        </tr>
+        <tr>
+          <td><code>Site</code></td>
+          <td><code>id, name, themeId, ownerId, plan</code></td>
+          <td>One site per user. Auto-provisioned on first login. <code>themeId</code> defaults to <code>"jewelry"</code>.</td>
+        </tr>
+        <tr>
+          <td><code>SiteContent</code></td>
+          <td><code>id, siteId, draft, live</code></td>
+          <td>Stores site content JSON. <code>draft</code> = editable, <code>live</code> = published. Key <code>"active_theme"</code> stores current theme.</td>
+        </tr>
+        <tr>
+          <td><code>SiteSnapshot</code></td>
+          <td><code>id, siteId, contentJson, createdAt</code></td>
+          <td>Content history snapshots. Created on publish.</td>
+        </tr>
+        <tr>
+          <td><code>AriaMemory</code></td>
+          <td><code>id, userId, key, value</code></td>
+          <td>Aria remembers user preferences. Paid tiers only. Unique on <code>(userId, key)</code>.</td>
+        </tr>
+        <tr>
+          <td><code>Account</code>, <code>Session</code></td>
+          <td>Standard NextAuth models</td>
+          <td>Managed entirely by NextAuth v5 + PrismaAdapter.</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3 class="collapsible-header">Products + Orders (e-commerce)</h3>
+    <div class="collapsible-content">
+      <table>
+        <tr><th>Model</th><th>Key fields</th><th>Notes</th></tr>
+        <tr>
+          <td><code>Product</code></td>
+          <td><code>id, name, slug, price, images, category, siteId, stripePriceId</code></td>
+          <td><code>images</code> stored as JSON string array of R2 URLs. <code>siteId</code> nullable — FK constraint prevents default string ID.</td>
+        </tr>
+        <tr>
+          <td><code>Order</code></td>
+          <td><code>id, userId, stripeSessionId, status, total</code></td>
+          <td><code>status</code>: <code>pending → paid</code>. Updated by Stripe webhook.</td>
+        </tr>
+        <tr>
+          <td><code>OrderItem</code></td>
+          <td><code>id, orderId, productId, quantity, price</code></td>
+          <td>Snapshot of price at time of purchase.</td>
+        </tr>
+        <tr>
+          <td><code>WebhookEvent</code></td>
+          <td><code>id, type, processedAt</code></td>
+          <td>Idempotency guard — prevents processing the same Stripe event twice.</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3 class="collapsible-header">Images + Components</h3>
+    <div class="collapsible-content">
+      <table>
+        <tr><th>Model</th><th>Key fields</th><th>Notes</th></tr>
+        <tr>
+          <td><code>ThemeImage</code></td>
+          <td><code>id, themeId, slot, r2Key, url, alt</code></td>
+          <td>DB override for a specific image slot. Unique on <code>(themeId, slot)</code>. Used by <code>resolveTheme()</code>.</td>
+        </tr>
+        <tr>
+          <td><code>CdnImage</code></td>
+          <td><code>id, r2Key, themeId, slot, prompt, source, altText, pexelsId</code></td>
+          <td>Image Scout catalog entry. Also has <code>embedding vector(768)</code> column added via raw SQL. Indexed on <code>(themeId, slot)</code>.</td>
+        </tr>
+        <tr>
+          <td><code>Component</code></td>
+          <td><code>id, slug, name, category, propsSchema, ariaName</code></td>
+          <td>UI component registry. <code>ariaName</code> is snake_case handle for Aria voice commands. <code>propsSchema</code> is flexible JSON.</td>
+        </tr>
+      </table>
+
+      <div class="callout info">
+        <strong>pgvector note:</strong> <code>CdnImage.embedding</code> is a <code>vector(768)</code> column not expressible in Prisma schema syntax. It's added via raw SQL and queried via <code>$queryRawUnsafe</code> with the <code>&lt;=&gt;</code> cosine distance operator.
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ THEME SYSTEM ══ -->
+  <section id="theme-system" class="doc-section">
+    <h2><span class="section-icon">🎨</span> Theme System</h2>
+    <p class="lead">8 complete store themes, each with brand identity, fonts, colors, hero content, and product catalog. Themes switch at runtime with zero rebuild.</p>
+
+    <h3>Available themes</h3>
+    <table>
+      <tr><th>ID</th><th>Brand type</th><th>Primary font</th><th>Accent</th></tr>
+      <tr><td><code>jewelry</code></td><td>Luxury jewelry</td><td>Cormorant Garamond</td><td>Gold tones</td></tr>
+      <tr><td><code>candy</code></td><td>Candy / sweets</td><td>Fredoka</td><td>Pink/purple</td></tr>
+      <tr><td><code>bakery</code></td><td>Artisan bakery</td><td>Lora</td><td>Warm amber</td></tr>
+      <tr><td><code>flowers</code></td><td>Flower shop</td><td>Playfair Display</td><td>Rose/green</td></tr>
+      <tr><td><code>wine</code></td><td>Wine merchant</td><td>Cormorant Garamond</td><td>Burgundy</td></tr>
+      <tr><td><code>restaurant</code></td><td>Restaurant</td><td>Playfair Display</td><td>Deep red</td></tr>
+      <tr><td><code>portfolio</code></td><td>Creative portfolio</td><td>Inter</td><td>Monochrome</td></tr>
+      <tr><td><code>saas</code></td><td>SaaS product</td><td>Lexend</td><td>Electric blue</td></tr>
+    </table>
+
+    <h3>How theme switching works</h3>
+    <ol>
+      <li>Admin visits <code>/admin/themes</code>, clicks a theme, triggers <code>POST /api/theme/switch</code></li>
+      <li>API writes <code>SiteContent.live</code> key <code>"active_theme"</code> = new themeId</li>
+      <li>Root layout calls <code>getActiveTheme()</code> on every request → reads this key</li>
+      <li><code>ThemeApplier</code> injects CSS custom properties into <code>&lt;head&gt;</code> for that theme</li>
+      <li>All fonts are pre-loaded in root layout; CSS variable <code>--font-heading</code> selects active font</li>
+    </ol>
+
+    <h3>Image resolution (static fallback → DB override)</h3>
+    <p>Each theme has image URLs defined in <code>themes/[id].ts</code>. These are static fallbacks. When <code>resolveTheme(themeId)</code> is called server-side, it fetches all <code>ThemeImage</code> records for that theme and merges them over the static config. This means Image Scout uploads take effect immediately without code changes or rebuilds.</p>
+
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre>// lib/themeImages.ts
+const base = THEMES[themeId]               // static TypeScript config
+const overrides = await prisma.themeImage.findMany({ where: { themeId } })
+const bySlot = new Map(overrides.map(r => [r.slot, r.url]))
+
+return {
+  ...base,
+  hero: { ...base.hero, image: bySlot.get("hero") ?? base.hero.image },
+  products: base.products.map(p => ({ ...p, image: bySlot.get(p.slug) ?? p.image }))
+}</pre>
+    </div>
+
+    <h3>Key files</h3>
+    <table>
+      <tr><th>File</th><th>Role</th></tr>
+      <tr><td><code>themes/[id].ts</code></td><td>Static theme config (brand, colors, fonts, products, hero)</td></tr>
+      <tr><td><code>lib/theme.ts</code></td><td>THEMES map + ThemeConfig type</td></tr>
+      <tr><td><code>lib/themeImages.ts</code></td><td>resolveTheme() with DB merge, getThemeImageMap()</td></tr>
+      <tr><td><code>lib/getActiveTheme.ts</code></td><td>Reads active_theme from SiteContent, calls resolveTheme()</td></tr>
+      <tr><td><code>components/layout/ThemeApplier.tsx</code></td><td>Injects CSS vars into &lt;head&gt; for active theme</td></tr>
+      <tr><td><code>app/api/theme/</code></td><td>Theme switch API</td></tr>
+    </table>
+  </section>
+
+  <!-- ══════════════════════════════════════════ ARIA VOICE ══ -->
+  <section id="aria-voice" class="doc-section">
+    <h2><span class="section-icon">🔊</span> Aria Voice AI</h2>
+    <p class="lead">Aria is a persistent Gemini Live WebSocket assistant. She knows what page you're on, what theme you're using, and can edit your store by voice.</p>
+
+    <h3>Contexts</h3>
+    <table>
+      <tr><th>Context</th><th>Triggered when</th><th>Knows about</th></tr>
+      <tr>
+        <td><code>"platform"</code></td>
+        <td><code>/</code>, <code>/demos</code>, <code>/pricing</code></td>
+        <td>All 8 demos, theme names, pricing tiers, how to sign up</td>
+      </tr>
+      <tr>
+        <td><code>"demo"</code></td>
+        <td><code>/demos/[themeId]</code></td>
+        <td>The specific demo store's products, pricing, brand</td>
+      </tr>
+      <tr>
+        <td><code>"member"</code></td>
+        <td>Dashboard, admin, products, checkout</td>
+        <td>Full workspace navigation, dev commands, editor shortcuts</td>
+      </tr>
+    </table>
+
+    <h3>Page-awareness</h3>
+    <p><code>useAriaPageContext.ts</code> watches <code>usePathname()</code> and calls <code>sendPageContextToAria()</code> on every route change. This sends a silent <code>turn_complete: false</code> message to the live session so Aria always knows the current URL without reconnecting.</p>
+
+    <h3>Voice commands (member context)</h3>
+    <table>
+      <tr><th>Command</th><th>What it does</th></tr>
+      <tr><td><code>update_site_content</code></td><td>Edit hero, products, nav, SEO fields</td></tr>
+      <tr><td><code>switch_theme</code></td><td>Switch active store theme</td></tr>
+      <tr><td><code>list_all_products</code></td><td>Fetch product list from DB and read aloud</td></tr>
+      <tr><td><code>describe_current_product</code></td><td>Read product details from current URL slug</td></tr>
+      <tr><td><code>navigate_admin</code></td><td>Navigate to admin sections (editor, themes, media, scout)</td></tr>
+      <tr><td><code>open_dev_hub</code></td><td>Open the developer hub panel</td></tr>
+      <tr><td><code>list_components</code></td><td>Read the component registry</td></tr>
+      <tr><td><code>image_scout_search</code></td><td>Trigger a Pexels/Gemini image search</td></tr>
+      <tr><td><code>image_scout_cdn_search</code></td><td>Semantic search of existing CDN catalog</td></tr>
+      <tr><td><code>save_memory</code></td><td>Persist a key-value memory (paid tiers)</td></tr>
+      <tr><td><code>recall_memory</code></td><td>Read back stored memories</td></tr>
+    </table>
+
+    <h3>Key files</h3>
+    <table>
+      <tr><th>File</th><th>Role</th></tr>
+      <tr><td><code>hooks/useAriaLive.ts</code></td><td>Core: WebSocket lifecycle, buildAriaConfig(), executeCommand(), sendPageContextToAria()</td></tr>
+      <tr><td><code>hooks/useAriaPageContext.ts</code></td><td>Auto-syncs context from URL changes</td></tr>
+      <tr><td><code>store/aria.ts</code></td><td>Zustand store: context, themeId, isConnected, memories</td></tr>
+      <tr><td><code>components/aria/AriaCommandDispatcher.tsx</code></td><td>Handles function calls from Aria → executes commands</td></tr>
+      <tr><td><code>components/ui/FloatingDock.tsx</code></td><td>Aria orb UI (3 buttons: voice, a11y, WhatsApp)</td></tr>
+      <tr><td><code>app/api/aria/memory/</code></td><td>Memory CRUD endpoints</td></tr>
+    </table>
+
+    <div class="callout">
+      <strong>Client-side key:</strong> <code>NEXT_PUBLIC_GEMINI_API_KEY</code> is the API key used for the Live WebSocket. It's exposed to the browser — use a key with appropriate restrictions in production.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ IMAGE SCOUT ══ -->
+  <section id="image-scout" class="doc-section">
+    <h2><span class="section-icon">🔍</span> Image Scout</h2>
+    <p class="lead">An admin-only curation tool that fills all 72 CDN image slots across 8 themes. Uses Pexels stock photos or Gemini-refined searches, compresses to WebP, and stores semantic embeddings for deduplication.</p>
+
+    <h3>Workflow</h3>
+    <ol>
+      <li>Navigate to <code>/admin/image-scout</code></li>
+      <li>Select theme (e.g. <code>jewelry</code>) and slot (e.g. <code>hero</code>)</li>
+      <li>Choose source: <strong>Pexels</strong> (direct search) or <strong>Gemini</strong> (AI-refined query, then Pexels)</li>
+      <li>Type a search prompt and press Enter → 12 results appear</li>
+      <li>Accept or reject each image (with optional rejection reason)</li>
+      <li>Click <strong>Upload</strong> — first accepted image is processed and stored</li>
+      <li>Repeat for next slot using the <strong>→ Next slot</strong> button</li>
+    </ol>
+
+    <h3>Upload pipeline</h3>
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre>POST /api/admin/image-scout/upload
+  1. Fetch image from URL
+  2. compressImage(buffer, { width: 1600 }) → WebP
+  3. PutObjectCommand → R2 key: "themes/{themeId}/{slot}.webp"
+  4. Upsert ThemeImage (slot → R2 URL override)
+  5. Upsert CdnImage  (catalog entry with prompt, source, pexelsId)
+  6. storeEmbedding(cdnImageId, prompt, altText)  ← async, non-blocking</pre>
+    </div>
+
+    <h3>Semantic search + deduplication</h3>
+    <p>Every uploaded image gets a 768-dim embedding from <code>gemini-embedding-001</code> stored in the <code>CdnImage.embedding</code> pgvector column. Before each upload, <code>checkDuplicate()</code> runs a cosine distance query — if distance &lt; 0.08 the image is flagged as a duplicate of something already in the CDN catalog.</p>
+
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre>-- Semantic search (cosine distance, ascending = most similar first)
+SELECT id, r2Key, themeId, slot, prompt, altText,
+       embedding &lt;=&gt; $1::vector AS distance
+FROM "CdnImage"
+WHERE embedding IS NOT NULL
+ORDER BY distance ASC
+LIMIT $2</pre>
+    </div>
+
+    <h3>Key files</h3>
+    <table>
+      <tr><th>File</th><th>Role</th></tr>
+      <tr><td><code>app/admin/image-scout/page.tsx</code></td><td>Full curation UI (theme selector, slot grid, search results, upload)</td></tr>
+      <tr><td><code>app/api/admin/image-scout/search/route.ts</code></td><td>Pexels search or Gemini-refined search</td></tr>
+      <tr><td><code>app/api/admin/image-scout/upload/route.ts</code></td><td>Download → compress → R2 → DB → embedding</td></tr>
+      <tr><td><code>app/api/admin/image-scout/catalog/route.ts</code></td><td>Browse CDN catalog by theme or semantic similarity</td></tr>
+      <tr><td><code>lib/embeddings.ts</code></td><td>generateEmbedding(), storeEmbedding(), findSimilar(), checkDuplicate()</td></tr>
+      <tr><td><code>lib/pexels.ts</code></td><td>Typed Pexels API wrapper using PEXEL_API_KEY</td></tr>
+      <tr><td><code>lib/slotMap.ts</code></td><td>72 slot definitions: {slot, label, promptHint, aspectRatio}</td></tr>
+    </table>
+  </section>
+
+  <!-- ══════════════════════════════════════════ STRIPE ══ -->
+  <section id="stripe-checkout" class="doc-section">
+    <h2><span class="section-icon">💳</span> Stripe Checkout</h2>
+    <p class="lead">Full e-commerce flow: cart → Stripe Checkout Session → webhook → order record. Subscriptions managed via Stripe Customer Portal.</p>
+
+    <h3>One-time purchase flow</h3>
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre>POST /api/checkout
+  Body: { items: [{ productId, quantity, price, name }] }
+  1. Validate user session
+  2. stripe.checkout.sessions.create({ line_items, mode: "payment" })
+  3. Return { sessionUrl } → browser redirects to Stripe</pre>
+    </div>
+
+    <h3>Webhook handler</h3>
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre>POST /api/webhooks/stripe
+  Event: checkout.session.completed
+  1. Verify Stripe signature
+  2. Check WebhookEvent table for idempotency
+  3. Create Order + OrderItem records
+  4. Mark order status: "paid"</pre>
+    </div>
+
+    <h3>Subscription flow</h3>
+    <table>
+      <tr><th>Action</th><th>Endpoint</th><th>Details</th></tr>
+      <tr><td>Subscribe to plan</td><td><code>POST /api/subscription/create</code></td><td>Creates Stripe Checkout Session in <code>subscription</code> mode</td></tr>
+      <tr><td>Manage plan</td><td><code>POST /api/subscription/portal</code></td><td>Creates Stripe Customer Portal session — user can upgrade/cancel</td></tr>
+      <tr><td>Subscription updated</td><td><code>POST /api/webhooks/stripe</code></td><td>Updates <code>User.subscriptionTier</code> on <code>customer.subscription.updated</code></td></tr>
+    </table>
+
+    <h3>Subscription tiers</h3>
+    <table>
+      <tr><th>Tier</th><th>Features</th></tr>
+      <tr><td><code>free</code></td><td>Basic store, no Aria memory, limited products</td></tr>
+      <tr><td><code>basic</code></td><td>Aria memory, email support</td></tr>
+      <tr><td><code>builder</code></td><td>All themes, custom domain (planned)</td></tr>
+      <tr><td><code>pro</code></td><td>Priority support, all features</td></tr>
+    </table>
+  </section>
+
+  <!-- ══════════════════════════════════════════ SITE EDITOR ══ -->
+  <section id="site-editor" class="doc-section">
+    <h2><span class="section-icon">✏️</span> Site Editor</h2>
+    <p class="lead">Draft/publish content workflow at <code>/admin/editor</code>. All content stored as JSON in <code>SiteContent</code>. Edit by voice (Aria) or direct input.</p>
+
+    <h3>Content model</h3>
+    <p>Each <code>SiteContent</code> record has an <code>id</code> (the content key), <code>draft</code> (editable JSON), and <code>live</code> (published JSON). Publishing copies draft → live. Snapshots are saved to <code>SiteSnapshot</code> for history.</p>
+
+    <h3>Content keys</h3>
+    <table>
+      <tr><th>Key</th><th>Stores</th></tr>
+      <tr><td><code>active_theme</code></td><td>Current theme ID string</td></tr>
+      <tr><td><code>hero</code></td><td>Hero section: headline, subheadline, CTA text</td></tr>
+      <tr><td><code>about</code></td><td>About page content</td></tr>
+      <tr><td><code>nav</code></td><td>Navigation label overrides</td></tr>
+      <tr><td><code>seo</code></td><td>Page title, meta description</td></tr>
+    </table>
+
+    <h3>API routes</h3>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Action</th></tr>
+      <tr><td>GET</td><td><code>/api/content/[key]</code></td><td>Fetch content by key</td></tr>
+      <tr><td>PUT</td><td><code>/api/content/[key]</code></td><td>Save draft</td></tr>
+      <tr><td>POST</td><td><code>/api/content/publish</code></td><td>Copy draft → live + create snapshot</td></tr>
+    </table>
+
+    <h3>Canvas store</h3>
+    <p>The Zustand <code>canvas.ts</code> store mirrors the editor state client-side. Aria's <code>update_site_content</code> function call updates the canvas store first (optimistic), then calls the API.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════ COMPONENTS ══ -->
+  <section id="component-registry" class="doc-section">
+    <h2><span class="section-icon">▦</span> Component Registry</h2>
+    <p class="lead">A searchable catalog of UI components that Aria can reference by voice. Browsable at <code>/admin/components</code>.</p>
+
+    <h3>Component model</h3>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>slug</code></td><td>string (unique)</td><td>URL-safe identifier e.g. <code>primary-button</code></td></tr>
+      <tr><td><code>name</code></td><td>string</td><td>Human-readable name</td></tr>
+      <tr><td><code>category</code></td><td>string</td><td>One of: button, input, card, overlay, nav, section</td></tr>
+      <tr><td><code>ariaName</code></td><td>string</td><td>Snake_case handle for voice e.g. <code>testimonial_card</code></td></tr>
+      <tr><td><code>propsSchema</code></td><td>JSON</td><td>Flexible prop schema for validation</td></tr>
+      <tr><td><code>previewImage</code></td><td>string?</td><td>R2 key for component screenshot</td></tr>
+    </table>
+
+    <h3>Aria integration</h3>
+    <p>The component registry is injected into Aria's system prompt via <code>lib/componentRegistry.ts</code>. Aria can use the <code>list_components</code> command to read all available components. The <code>ariaName</code> field is the handle Aria uses to refer to components in conversation.</p>
+
+    <h3>Seeding</h3>
+    <p>Components are seeded via <code>prisma/seed.ts</code>. Run <code>npx prisma db seed</code> to populate the registry with the initial component set.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════ API REFERENCE ══ -->
+  <section id="api-reference" class="doc-section">
+    <h2><span class="section-icon">↗</span> API Routes</h2>
+    <p class="lead">All API routes live in <code>app/api/</code>. All inputs validated with Zod schemas from <code>lib/validations.ts</code>.</p>
+
+    <h3>Auth</h3>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr>
+      <tr><td>*</td><td><code>/api/auth/*</code></td><td>—</td><td>NextAuth v5 routes (signin, callback, signout, session)</td></tr>
+    </table>
+
+    <h3>Media</h3>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr>
+      <tr><td>POST</td><td><code>/api/media/upload</code></td><td>Session</td><td>Upload image → compress → R2. Body: multipart form with <code>file</code>, <code>themeId</code>, <code>slot</code></td></tr>
+      <tr><td>DELETE</td><td><code>/api/media/images</code></td><td>Admin</td><td>Delete R2 image by <code>r2Key</code></td></tr>
+    </table>
+
+    <h3>Commerce</h3>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr>
+      <tr><td>POST</td><td><code>/api/checkout</code></td><td>Optional</td><td>Create Stripe Checkout Session. Returns <code>{ sessionUrl }</code></td></tr>
+      <tr><td>POST</td><td><code>/api/webhooks/stripe</code></td><td>Stripe sig</td><td>Process Stripe events (payment, subscription)</td></tr>
+      <tr><td>POST</td><td><code>/api/subscription/create</code></td><td>Session</td><td>Subscribe to plan tier</td></tr>
+      <tr><td>POST</td><td><code>/api/subscription/portal</code></td><td>Session</td><td>Open Stripe Customer Portal. Returns <code>{ url }</code></td></tr>
+    </table>
+
+    <h3>Content</h3>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr>
+      <tr><td>GET</td><td><code>/api/content/[key]</code></td><td>None</td><td>Fetch live content by key</td></tr>
+      <tr><td>PUT</td><td><code>/api/content/[key]</code></td><td>Admin</td><td>Save draft content</td></tr>
+      <tr><td>POST</td><td><code>/api/content/publish</code></td><td>Admin</td><td>Publish draft → live + snapshot</td></tr>
+    </table>
+
+    <h3>Aria</h3>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr>
+      <tr><td>GET</td><td><code>/api/aria/memory</code></td><td>Session (paid)</td><td>Fetch all memories for current user</td></tr>
+      <tr><td>PUT</td><td><code>/api/aria/memory</code></td><td>Session (paid)</td><td>Save or update a memory key-value</td></tr>
+      <tr><td>DELETE</td><td><code>/api/aria/memory</code></td><td>Session (paid)</td><td>Delete a memory by key</td></tr>
+    </table>
+
+    <h3>Admin</h3>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr>
+      <tr><td>POST</td><td><code>/api/theme/switch</code></td><td>Admin</td><td>Switch active theme. Body: <code>{ themeId }</code></td></tr>
+      <tr><td>GET</td><td><code>/api/admin/products/list</code></td><td>Session</td><td>List all products (name, price, slug) for Aria</td></tr>
+      <tr><td>POST</td><td><code>/api/admin/image-scout/search</code></td><td>Admin</td><td>Search Pexels or Gemini. Body: <code>{ query, themeId, slot, orientation, source }</code></td></tr>
+      <tr><td>POST</td><td><code>/api/admin/image-scout/upload</code></td><td>Admin</td><td>Download → compress → R2 → DB. Body: <code>{ imageUrl, themeId, slot, altText, prompt, source, pexelsId? }</code></td></tr>
+      <tr><td>GET</td><td><code>/api/admin/image-scout/catalog</code></td><td>Admin</td><td>Browse catalog: <code>?themeId=jewelry</code> or <code>?q=warm+hero</code></td></tr>
+      <tr><td>GET/POST</td><td><code>/api/admin/components</code></td><td>Admin</td><td>List or create components in registry</td></tr>
+      <tr><td>POST</td><td><code>/api/contact</code></td><td>None</td><td>Contact form → Resend email</td></tr>
+      <tr><td>POST</td><td><code>/api/newsletter</code></td><td>None</td><td>Newsletter signup</td></tr>
+    </table>
+  </section>
+
+  <!-- ══════════════════════════════════════════ ADMIN ══ -->
+  <section id="admin-panel" class="doc-section">
+    <h2><span class="section-icon">◈</span> Admin Panel</h2>
+    <p class="lead">Server-side protected to <code>ADMIN_EMAIL</code> only. Layout at <code>app/admin/layout.tsx</code> with tab navigation via <code>AdminNav</code>.</p>
+
+    <table>
+      <tr><th>Tab</th><th>URL</th><th>What it does</th></tr>
+      <tr>
+        <td>Dashboard</td>
+        <td><code>/admin</code></td>
+        <td>Revenue stats, paid order count, product count, recent orders table. Shortcuts to editor and themes.</td>
+      </tr>
+      <tr>
+        <td>Themes</td>
+        <td><code>/admin/themes</code></td>
+        <td>Preview all 8 themes. Click any to make it the active store theme.</td>
+      </tr>
+      <tr>
+        <td>Editor</td>
+        <td><code>/admin/editor</code></td>
+        <td>Visual content editor. Draft and publish hero, products, nav, SEO. Snapshot history.</td>
+      </tr>
+      <tr>
+        <td>Media</td>
+        <td><code>/admin/media</code></td>
+        <td>Browse R2 images by theme slot. Delete images. See which slots are filled vs empty.</td>
+      </tr>
+      <tr>
+        <td>Components</td>
+        <td><code>/admin/components</code></td>
+        <td>View component registry. Category filter. See ariaName, props schema, preview image for each component.</td>
+      </tr>
+      <tr>
+        <td>Scout</td>
+        <td><code>/admin/image-scout</code></td>
+        <td>AI image curation. Select theme + slot, search Pexels/Gemini, curate, upload to R2.</td>
+      </tr>
+    </table>
+
+    <div class="callout">
+      <strong>Access:</strong> Admin protection is server-side in <code>app/admin/layout.tsx</code>. It checks <code>session.user.email === env.ADMIN_EMAIL</code>. There is <strong>no middleware.ts</strong> — protection is at layout level only.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ DEV TOOLS ══ -->
+  <section id="dev-tools" class="doc-section">
+    <h2><span class="section-icon">⚒</span> Developer Tools</h2>
+    <p class="lead">Scripts, test commands, and dev utilities for working on StoreKit locally.</p>
+
+    <h3>Before every commit</h3>
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre>npx tsc --noEmit   # TypeScript — must pass, zero errors
+npm test           # Vitest unit tests — must pass
+npm run lint       # Biome lint — fix errors, review warnings</pre>
+    </div>
+
+    <h3>Database commands</h3>
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre>npx prisma db push      # sync schema → DB + regenerate client
+npx prisma studio       # GUI browser for records
+npx prisma db seed      # seed sample products + components
+npx prisma generate     # regenerate Prisma client only (no DB changes)</pre>
+    </div>
+
+    <h3>Image management scripts</h3>
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre>npm run validate:themes          # check all 8 theme configs are valid
+npm run migrate:images           # migrate existing image URLs to R2
+npm run upload:approved          # bulk upload pre-approved images from a JSON list
+npm run scout                    # run standalone image-scout CLI script</pre>
+    </div>
+
+    <h3>Dev Hub</h3>
+    <p>At <code>/app/dev/</code> — a developer-only interface for testing Aria contexts, content preview, and theme switching. Accessible via Aria voice command <code>open dev hub</code>.</p>
+
+    <h3>TanStack Query devtools</h3>
+    <p>Included in dev mode only. Opens via the React Query devtools button (bottom-right). Shows all queries, their cache state, and fetch history.</p>
+
+    <h3>Sentry</h3>
+    <p>Configured in <code>instrumentation.ts</code>. Active in production only — skipped in dev to reduce noise. Error boundary and unhandled rejection capture enabled.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════ DEPLOYMENT ══ -->
+  <section id="deployment" class="doc-section">
+    <h2><span class="section-icon">☁</span> Deployment</h2>
+    <p class="lead">Containerized via Docker, deployed to Google Cloud Run (europe-west1). Live at <code>https://tal-store-233162846070.europe-west1.run.app</code>.</p>
+
+    <h3>Build + deploy flow</h3>
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre># Build Docker image
+docker build -t storekit .
+
+# Push to Artifact Registry (or deploy directly via gcloud)
+gcloud run deploy tal-store \
+  --image gcr.io/[PROJECT]/storekit \
+  --region europe-west1 \
+  --port 3000</pre>
+    </div>
+
+    <h3>Dockerfile notes</h3>
+    <ul>
+      <li>Uses <code>npm ci</code> (not <code>--omit=dev</code>) — devDependencies needed for build</li>
+      <li>Installs <code>openssl</code> in all Docker stages (required by Prisma)</li>
+      <li>Sets <code>SKIP_ENV_VALIDATION=true</code> during <code>next build</code></li>
+      <li>Final stage: <code>next start</code> on port 3000</li>
+    </ul>
+
+    <h3>Cloud Run configuration</h3>
+    <ul>
+      <li>All env vars set directly in Cloud Run service environment variables</li>
+      <li>Memory: 512Mi (Sharp needs headroom for image processing)</li>
+      <li>All <code>force-dynamic</code> pages — no static cache, every request reads DB</li>
+      <li>Gemini WebSocket connects from the browser, not the Cloud Run instance</li>
+    </ul>
+
+    <h3>Google OAuth setup for production</h3>
+    <p>Add this authorized redirect URI in Google Cloud Console → OAuth 2.0 Clients:</p>
+    <div class="code-block">
+      <button class="copy-btn">Copy</button>
+      <pre>https://tal-store-233162846070.europe-west1.run.app/api/auth/callback/google</pre>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ ROADMAP ══ -->
+  <section id="roadmap" class="doc-section">
+    <h2><span class="section-icon">→</span> Roadmap</h2>
+    <p class="lead">Current state and what's coming next. Full details in <code>docs/MASTER-ROADMAP.md</code>.</p>
+
+    <table>
+      <tr><th>Phase</th><th>Description</th><th>Status</th></tr>
+      <tr>
+        <td>P1</td>
+        <td>Platform Foundation — auth, themes, store pages, products, checkout</td>
+        <td><span class="pill pill-green">✓ Complete</span></td>
+      </tr>
+      <tr>
+        <td>P2</td>
+        <td>Aria-as-Editor — voice editing, content API, command dispatcher</td>
+        <td><span class="pill pill-green">✓ Complete</span></td>
+      </tr>
+      <tr>
+        <td>P3</td>
+        <td>Theme Pack Polish — all 8 themes production-ready, image slots defined</td>
+        <td><span class="pill pill-green">✓ Complete</span></td>
+      </tr>
+      <tr>
+        <td>PP</td>
+        <td>Platform Pivot — multi-tenant, Stripe subscriptions, user dashboard</td>
+        <td><span class="pill pill-green">✓ Complete</span></td>
+      </tr>
+      <tr>
+        <td>DI</td>
+        <td>Development Infrastructure — test suite, Sentry, Biome, Cloud Run</td>
+        <td><span class="pill pill-green">✓ Complete</span></td>
+      </tr>
+      <tr>
+        <td>CDN</td>
+        <td>Image Scout — Pexels + Gemini curation, R2 uploads, pgvector embeddings</td>
+        <td><span class="pill pill-green">✓ Complete</span></td>
+      </tr>
+      <tr>
+        <td>P4</td>
+        <td>Atomic Component Library — SVG previews, component palette, E2E tests</td>
+        <td><span class="pill pill-amber">⟳ In progress</span></td>
+      </tr>
+      <tr>
+        <td>P5</td>
+        <td>Domain Types + Layout Library — Store, Blog, Recipe, Portfolio, Agency layouts</td>
+        <td><span class="pill pill-muted">📋 Planned</span></td>
+      </tr>
+      <tr>
+        <td>P6</td>
+        <td>Public Launch — rate limiting, PostHog analytics, background jobs</td>
+        <td><span class="pill pill-muted">📋 Planned</span></td>
+      </tr>
+    </table>
+
+    <h3>Pre-launch checklist (add WHEN you have real users)</h3>
+    <ul>
+      <li><strong>Upstash Redis + rate limiting</strong> — protect <code>/api/media/upload</code> and Gemini WebSocket from abuse</li>
+      <li><strong>PostHog</strong> — track theme demo views, Aria sessions, checkout funnel</li>
+      <li><strong>Trigger.dev</strong> — background jobs for image migration, email sequences, health checks</li>
+    </ul>
+  </section>
+
+  <!-- ══════════════════════════════════════════ GOTCHAS ══ -->
+  <section id="gotchas" class="doc-section">
+    <h2><span class="section-icon">⚠</span> Gotchas</h2>
+    <p class="lead">The "if something is broken, check this first" section.</p>
+
+    <h3>Auth / OAuth</h3>
+    <div class="callout">
+      <strong>OAuth redirect loop:</strong> caused by adding <code>pages: { signIn: "/api/auth/signin" }</code> to NextAuth config. This config key was removed and MUST NOT be re-added. If users get stuck in a signin loop, check <code>lib/auth.config.ts</code>.
+    </div>
+    <div class="callout">
+      <strong>Google OAuth not working locally:</strong> ensure <code>http://localhost:3000/api/auth/callback/google</code> is in your Google Console authorized redirect URIs.
+    </div>
+
+    <h3>Database</h3>
+    <div class="callout">
+      <strong>siteId constraint error:</strong> <code>siteId</code> on <code>Product</code>, <code>SiteContent</code>, and <code>SiteSnapshot</code> is nullable. Don't set a default string value — FK constraints prevent it.
+    </div>
+    <div class="callout">
+      <strong>Prisma client out of sync:</strong> if you see <code>prisma.cdnImage does not exist</code> or similar, run <code>npx prisma generate</code> to regenerate the client after schema changes.
+    </div>
+    <div class="callout">
+      <strong>pgvector not found:</strong> run <code>CREATE EXTENSION IF NOT EXISTS vector</code> on your Neon database. Also add the <code>embedding</code> column manually via raw SQL — Prisma doesn't manage vector columns.
+    </div>
+
+    <h3>Scripts</h3>
+    <div class="callout">
+      <strong>Script crashes on import:</strong> all scripts in <code>scripts/</code> must have <code>import "dotenv/config"</code> as the <strong>very first import</strong> before any other imports. <code>env.ts</code> validates on import, and env vars must be loaded first.
+    </div>
+
+    <h3>Biome / Linting</h3>
+    <div class="callout">
+      <strong>Biome schema error:</strong> Biome v2 is installed. The schema URL in <code>biome.json</code> must be <code>2.x.x</code>. The <code>organizeImports</code> key does not exist in v2 — remove it if present.
+    </div>
+
+    <h3>Aria / Gemini</h3>
+    <div class="callout">
+      <strong>Aria not connecting:</strong> check that <code>NEXT_PUBLIC_GEMINI_API_KEY</code> is set and valid. The Gemini Live WebSocket connects from the browser using this key.
+    </div>
+    <div class="callout">
+      <strong>Aria context wrong after navigation:</strong> <code>useAriaPageContext()</code> must be called inside <code>FloatingDock</code>. If the orb is showing the wrong context, check that the hook import is present in <code>components/ui/FloatingDock.tsx</code>.
+    </div>
+
+    <h3>Deployment</h3>
+    <div class="callout">
+      <strong>Build fails on Cloud Run:</strong> check that <code>SKIP_ENV_VALIDATION=true</code> is set as a build arg in the Dockerfile — <code>env.ts</code> validates all vars at import time and will throw if any are missing during build.
+    </div>
+    <div class="callout">
+      <strong>Guided tour references:</strong> the guided tour was fully removed. Do NOT reference <code>TourStep</code>, <code>startTour</code>, <code>isTourActive</code>, <code>AriaTourOverlay</code>, or <code>ariaTourSteps</code> anywhere.
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════════════════════════════════════ JAVASCRIPT ══ -->
+<script>
+  // ── Theme toggle ─────────────────────────────────────────────────────
+  const html = document.documentElement
+  const toggleBtn = document.getElementById('theme-toggle')
+  const savedTheme = localStorage.getItem('atlas-theme') || 'dark'
+  html.setAttribute('data-theme', savedTheme)
+  toggleBtn.textContent = savedTheme === 'dark' ? '☀ Light' : '☾ Dark'
+
+  toggleBtn.addEventListener('click', () => {
+    const current = html.getAttribute('data-theme')
+    const next = current === 'dark' ? 'light' : 'dark'
+    html.setAttribute('data-theme', next)
+    localStorage.setItem('atlas-theme', next)
+    toggleBtn.textContent = next === 'dark' ? '☀ Light' : '☾ Dark'
+  })
+
+  // ── Copy buttons ──────────────────────────────────────────────────────
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const code = btn.nextElementSibling?.textContent || ''
+      navigator.clipboard.writeText(code).then(() => {
+        btn.textContent = 'Copied!'
+        setTimeout(() => { btn.textContent = 'Copy' }, 2000)
+      }).catch(() => {
+        btn.textContent = 'Failed'
+        setTimeout(() => { btn.textContent = 'Copy' }, 2000)
+      })
+    })
+  })
+
+  // ── Sidebar scroll-spy (IntersectionObserver) ─────────────────────────
+  const navItems = document.querySelectorAll('.nav-item')
+  const sections = document.querySelectorAll('.doc-section')
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id
+        navItems.forEach(item => {
+          item.classList.toggle('active', item.getAttribute('href') === `#${id}`)
+        })
+      }
+    })
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 })
+
+  sections.forEach(section => observer.observe(section))
+
+  // ── Smooth scroll from nav ────────────────────────────────────────────
+  navItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault()
+      const id = item.getAttribute('href').slice(1)
+      const target = document.getElementById(id)
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    })
+  })
+
+  // ── Search filter ─────────────────────────────────────────────────────
+  const searchBox = document.getElementById('search-box')
+  searchBox.addEventListener('input', () => {
+    const q = searchBox.value.toLowerCase().trim()
+    navItems.forEach(item => {
+      const text = item.textContent.toLowerCase()
+      item.classList.toggle('hidden', q.length > 0 && !text.includes(q))
+    })
+    // Hide group labels when all children are hidden
+    document.querySelectorAll('.nav-group').forEach(group => {
+      const visibleItems = group.querySelectorAll('.nav-item:not(.hidden)')
+      group.style.display = visibleItems.length === 0 ? 'none' : ''
+    })
+  })
+
+  // ── Collapsible h3 sections ───────────────────────────────────────────
+  document.querySelectorAll('.collapsible-header').forEach(header => {
+    const content = header.nextElementSibling
+    if (!content || !content.classList.contains('collapsible-content')) return
+    // Set initial max-height
+    content.style.maxHeight = content.scrollHeight + 'px'
+    header.addEventListener('click', () => {
+      const isCollapsed = header.classList.toggle('collapsed')
+      content.style.maxHeight = isCollapsed ? '0' : content.scrollHeight + 'px'
+    })
+  })
+</script>
+
+</body>
+</html>

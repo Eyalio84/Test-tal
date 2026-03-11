@@ -8,7 +8,7 @@ export async function generateStaticParams() {
   return Object.keys(THEMES).map((id) => ({ themeId: id }))
 }
 
-export default async function DemoHomePage({ params }: { params: Promise<{ themeId: string }> }) {
+export default async function TemplateHomePage({ params }: { params: Promise<{ themeId: string }> }) {
   const { themeId } = await params
   const theme = await resolveTheme(themeId).catch(() => null)
   if (!theme) notFound()
@@ -32,7 +32,7 @@ export default async function DemoHomePage({ params }: { params: Promise<{ theme
           <h1 className="font-serif text-4xl md:text-6xl text-white mb-4">{theme.hero.headline}</h1>
           <p className="text-white/80 text-lg max-w-xl mx-auto mb-8">{theme.hero.subline}</p>
           <Link
-            href={`/demos/${themeId}/products`}
+            href={`/templates/${themeId}/products`}
             className="inline-block px-8 py-3 text-sm tracking-widest uppercase text-white border border-white/60 hover:bg-white hover:text-zinc-900 transition"
           >
             {theme.hero.ctaText}
@@ -58,7 +58,7 @@ export default async function DemoHomePage({ params }: { params: Promise<{ theme
                 <p className="text-ink text-sm font-medium">{product.name}</p>
                 <p className="text-ink/50 text-xs mt-0.5">${product.price.toFixed(2)}</p>
                 <Link
-                  href={`/demos/${themeId}/products`}
+                  href={`/templates/${themeId}/products`}
                   className="mt-2 inline-block text-xs tracking-widest uppercase text-ink/50 hover:text-ink transition"
                 >
                   View all →

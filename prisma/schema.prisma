@@ -1,11 +1,13 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
 }
 
 model Account {
@@ -163,4 +165,23 @@ model WebhookEvent {
   id          String   @id
   type        String
   processedAt DateTime @default(now())
+}
+
+// ── CDN Image catalog — powers Image Scout curation tool ───────────────────
+// embedding is a 768-dim pgvector column for semantic search + dupe detection
+model CdnImage {
+  id         String   @id @default(cuid())
+  r2Key      String   @unique            // e.g. "themes/jewelry/hero.jpg"
+  themeId    String                      // "jewelry" | "bakery" | ...
+  slot       String                      // "hero" | "rings" | "team-1" | ...
+  prompt     String                      // search prompt used to find it
+  source     String                      // "pexels" | "gemini-search" | "gemini-imagen"
+  altText    String   @default("")
+  tags       String   @default("[]")    // JSON string array
+  pexelsId   String?                    // original Pexels photo ID
+  uploadedAt DateTime @default(now())
+  // embedding: vector(768) — added via raw SQL, queried via $queryRaw
+  // Represents the semantic meaning of prompt+altText for similarity search
+
+  @@index([themeId, slot])
 }

@@ -2,9 +2,9 @@ import { notFound } from "next/navigation"
 import { THEMES } from "@/lib/theme"
 import { resolveTheme } from "@/lib/themeImages"
 import { ThemeApplierStatic } from "@/components/layout/ThemeApplierStatic"
-import { DemoAriaContext } from "@/components/demos/DemoAriaContext"
+import { TemplateAriaContext } from "@/components/templates/TemplateAriaContext"
 
-export default async function DemoLayout({
+export default async function TemplateLayout({
   children,
   params,
 }: {
@@ -17,7 +17,7 @@ export default async function DemoLayout({
 
   return (
     <>
-      <DemoAriaContext />
+      <TemplateAriaContext />
       <ThemeApplierStatic theme={theme} />
       {children}
     </>

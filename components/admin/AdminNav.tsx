@@ -8,14 +8,15 @@ const NAV = [
   { href: "/admin/themes", label: "Themes",    icon: "🎨" },
   { href: "/admin/editor", label: "Editor",    icon: "✏️" },
   { href: "/admin/media",  label: "Media",     icon: "🖼️" },
-  { href: "/admin/components", label: "Components", icon: "▦" },
+  { href: "/admin/components",  label: "Components", icon: "▦" },
+  { href: "/admin/image-scout", label: "Scout",      icon: "🔍" },
 ]
 
 export function AdminNav() {
   const path = usePathname()
 
   return (
-    <nav className="flex gap-1 mb-8 border-b border-stone-200 overflow-x-auto scrollbar-none">
+    <nav className="sticky top-24 z-30 flex gap-1 mb-8 border-b border-stone-200 overflow-x-auto scrollbar-none bg-stone-50 -mx-4 sm:-mx-6 px-4 sm:px-6">
       {NAV.map(({ href, label, icon }) => {
         const active = path === href
         return (
