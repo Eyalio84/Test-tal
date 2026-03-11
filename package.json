@@ -11,6 +11,7 @@
     "validate:themes:strict": "tsx scripts/validate-themes.ts --strict",
     "upload:approved": "tsx --env-file=.env.local scripts/upload-approved.ts",
     "scout": "tsx --env-file=.env.local scripts/image-scout.ts",
+    "generate-previews": "tsx --env-file=.env.local scripts/generate-component-previews.ts",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check .",
@@ -49,6 +50,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.6",
+    "@playwright/test": "^1.48.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
