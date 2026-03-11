@@ -2,36 +2,23 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { use } from "react"
 import { useCart } from "@/store/cart"
-import { resolveTheme } from "@/lib/themeImages"
-import type { ThemeConfig } from "@/lib/theme"
+import { THEMES } from "@/lib/theme"
 
 export default function TemplateCartPage({ params }: { params: Promise<{ themeId: string }> }) {
-  const [hydrated, setHydrated] = useState(false)
-  const [theme, setTheme] = useState<ThemeConfig | null>(null)
-  const [themeId, setThemeId] = useState<string>("")
+  const { themeId } = use(params)
+  const theme = THEMES[themeId]
   const items = useCart((state) => state.items)
   const removeItem = useCart((state) => state.removeItem)
   const updateQuantity = useCart((state) => state.updateQuantity)
   const clearCart = useCart((state) => state.clearCart)
 
-  useEffect(() => {
-    const initTheme = async () => {
-      const resolvedParams = await params
-      setThemeId(resolvedParams.themeId)
-      const resolvedTheme = await resolveTheme(resolvedParams.themeId)
-      setTheme(resolvedTheme)
-      setHydrated(true)
-    }
-    initTheme()
-  }, [params])
-
-  if (!hydrated || !theme || !themeId) {
+  if (!theme) {
     return (
       <div className="pt-24 pb-20">
         <div className="max-w-4xl mx-auto px-6">
-          <p className="text-ink/50">Loading cart...</p>
+          <p className="text-ink/50">Store not found.</p>
         </div>
       </div>
     )
