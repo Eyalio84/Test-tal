@@ -24,12 +24,12 @@ export async function GET(req: NextRequest) {
 
   const images = await prisma.themeImage.findMany({
     where: { themeId: parsed.data.themeId },
-    select: { slot: true, url: true, alt: true },
+    select: { slot: true, url: true, alt: true, updatedAt: true },
   })
 
-  // Return as a slot→url map for easy lookup on the client
+  // Return as a slot→url map. Cache-buster prevents stale browser cache after Scout uploads.
   const map: Record<string, string> = {}
-  for (const img of images) map[img.slot] = img.url
+  for (const img of images) map[img.slot] = `${img.url}?v=${img.updatedAt.getTime()}`
 
   return NextResponse.json(map)
 }

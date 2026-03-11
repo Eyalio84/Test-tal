@@ -2,14 +2,14 @@ import Image from "next/image"
 import Link from "next/link"
 import { THEMES } from "@/lib/theme"
 
-export default function DemosPage() {
+export default function TemplatesPage() {
   const themes = Object.values(THEMES)
 
   return (
     <div className="min-h-screen bg-zinc-950 pt-24 pb-20">
       <div className="max-w-7xl mx-auto px-6">
         <div className="mb-12">
-          <h1 className="font-serif text-4xl text-white mb-4">Live Demos</h1>
+          <h1 className="font-serif text-4xl text-white mb-4">Templates</h1>
           <p className="text-zinc-400 text-lg max-w-2xl">
             8 fully-voiced storefronts, powered by Aria. Each is a real, working theme you can launch.
           </p>
@@ -17,7 +17,7 @@ export default function DemosPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {themes.map((theme) => (
-            <Link key={theme.id} href={`/demos/${theme.id}`} className="group block">
+            <Link key={theme.id} href={`/templates/${theme.id}`} className="group block">
               <div className="relative h-56 overflow-hidden mb-4 bg-zinc-900">
                 <Image
                   src={theme.hero.image}

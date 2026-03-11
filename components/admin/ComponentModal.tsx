@@ -1,8 +1,9 @@
 "use client"
 
 import React from "react"
+import { createPortal } from "react-dom"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { createComponentSchema, updateComponentSchema } from "@/lib/validations"
+import { COMPONENT_CATEGORIES } from "@/lib/validations"
 import type { Component } from "@prisma/client"
 
 interface ComponentModalProps {
@@ -14,14 +15,31 @@ interface ComponentModalProps {
 export function ComponentModal({ isOpen, onClose, component }: ComponentModalProps) {
   const queryClient = useQueryClient()
   const [formData, setFormData] = React.useState({
-    slug: component?.slug ?? "",
-    name: component?.name ?? "",
-    category: component?.category ?? "button",
-    description: component?.description ?? "",
-    ariaName: component?.ariaName ?? "",
-    propsSchema: component?.propsSchema ?? {},
+    slug: "",
+    name: "",
+    category: "button",
+    description: "",
+    ariaName: "",
+    propsSchema: {} as Record<string, unknown>,
   })
   const [error, setError] = React.useState<string | null>(null)
+  const [mounted, setMounted] = React.useState(false)
+
+  // Portal requires client mount
+  React.useEffect(() => { setMounted(true) }, [])
+
+  // Sync form when component prop changes (e.g. clicking Edit on a different component)
+  React.useEffect(() => {
+    setError(null)
+    setFormData({
+      slug: component?.slug ?? "",
+      name: component?.name ?? "",
+      category: component?.category ?? "button",
+      description: component?.description ?? "",
+      ariaName: component?.ariaName ?? "",
+      propsSchema: (component?.propsSchema as Record<string, unknown>) ?? {},
+    })
+  }, [component, isOpen])
 
   const { mutate: save, isPending } = useMutation({
     mutationFn: async () => {
@@ -52,20 +70,23 @@ export function ComponentModal({ isOpen, onClose, component }: ComponentModalPro
     },
   })
 
-  if (!isOpen) return null
+  if (!isOpen || !mounted) return null
 
   const isEdit = !!component
 
-  return (
-    <div className="fixed inset-0 bg-ink/50 flex items-center justify-center z-50">
-      <div className="bg-paper rounded-lg shadow-lg max-w-md w-full mx-4">
-        <div className="px-6 py-4 border-b border-ink/10">
-          <h2 className="text-lg font-serif text-ink">
+  return createPortal(
+    <div
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999]"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 flex flex-col max-h-[90vh]">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-serif text-gray-900">
             {isEdit ? "Edit Component" : "New Component"}
           </h2>
         </div>
 
-        <div className="px-6 py-4 space-y-4 max-h-96 overflow-y-auto">
+        <div className="px-6 py-4 space-y-4 overflow-y-auto">
           {error && (
             <div className="px-3 py-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
               {error}
@@ -73,102 +94,98 @@ export function ComponentModal({ isOpen, onClose, component }: ComponentModalPro
           )}
 
           <div>
-            <label className="block text-xs font-medium text-ink/70 mb-1">Slug</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Slug</label>
             <input
               type="text"
               value={formData.slug}
               onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
               disabled={isEdit}
-              className="w-full px-2 py-1.5 border border-ink/10 rounded text-sm disabled:bg-ink/5"
+              className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm disabled:bg-gray-50 disabled:text-gray-400"
               placeholder="primary-button"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-ink/70 mb-1">Name</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-2 py-1.5 border border-ink/10 rounded text-sm"
+              className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm"
               placeholder="Primary Button"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-ink/70 mb-1">Category</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Category</label>
             <select
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-2 py-1.5 border border-ink/10 rounded text-sm"
+              className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm bg-white"
             >
-              <option>button</option>
-              <option>input</option>
-              <option>card</option>
-              <option>overlay</option>
-              <option>nav</option>
-              <option>section</option>
-              <option>badge</option>
-              <option>modal</option>
+              {COMPONENT_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-ink/70 mb-1">Aria Name</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Aria Name</label>
             <input
               type="text"
               value={formData.ariaName}
               onChange={(e) => setFormData({ ...formData, ariaName: e.target.value })}
-              className="w-full px-2 py-1.5 border border-ink/10 rounded text-sm"
+              className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm"
               placeholder="primary_button"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-ink/70 mb-1">Description</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-2 py-1.5 border border-ink/10 rounded text-sm"
+              className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm"
               rows={3}
               placeholder="Component description..."
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-ink/70 mb-1">Props Schema (JSON)</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Props Schema (JSON)</label>
             <textarea
               value={JSON.stringify(formData.propsSchema, null, 2)}
               onChange={(e) => {
                 try {
                   setFormData({ ...formData, propsSchema: JSON.parse(e.target.value) })
                 } catch {
-                  // Invalid JSON, ignore
+                  // Invalid JSON, ignore until valid
                 }
               }}
-              className="w-full px-2 py-1.5 border border-ink/10 rounded text-xs font-mono"
+              className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs font-mono"
               rows={4}
               placeholder="{}"
             />
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-ink/10 flex gap-2 justify-end">
+        <div className="px-6 py-4 border-t border-gray-200 flex gap-2 justify-end">
           <button
             onClick={onClose}
-            className="px-3 py-1.5 text-sm border border-ink/10 rounded hover:bg-ink/5 transition"
+            className="px-3 py-1.5 text-sm border border-gray-200 rounded hover:bg-gray-50 transition"
           >
             Cancel
           </button>
           <button
             onClick={() => save()}
             disabled={isPending}
-            className="px-3 py-1.5 text-sm bg-ink text-paper rounded hover:bg-ink/90 disabled:opacity-50 transition"
+            className="px-3 py-1.5 text-sm bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50 transition"
           >
             {isPending ? "Saving…" : "Save"}
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

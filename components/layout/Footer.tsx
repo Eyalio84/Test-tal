@@ -13,7 +13,7 @@ export function Footer() {
 
           {/* Nav links */}
           <nav aria-label="Footer navigation" className="flex flex-wrap gap-x-8 gap-y-2">
-            <Link href="/demos" className="text-xs tracking-widest uppercase hover:text-white transition">Demos</Link>
+            <Link href="/templates" className="text-xs tracking-widest uppercase hover:text-white transition">Templates</Link>
             <Link href="/#pricing" className="text-xs tracking-widest uppercase hover:text-white transition">Pricing</Link>
             <Link href="/docs" className="text-xs tracking-widest uppercase hover:text-white transition">Docs</Link>
             <Link href="/about" className="text-xs tracking-widest uppercase hover:text-white transition">About</Link>

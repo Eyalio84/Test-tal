@@ -4,6 +4,7 @@ import { useCallback } from "react"
 import toast from "react-hot-toast"
 import { useAria } from "@/store/aria"
 import { useCanvas } from "@/store/canvas"
+import { ARIA_CHANGELOG, buildChangelogPrompt } from "@/lib/ariaChangelog"
 
 // ── Module-level singletons ────────────────────────────────────────────────
 // These live OUTSIDE React — page navigation can never affect them
@@ -23,6 +24,7 @@ const aria = () => useAria.getState()
 
 // ── Theme ──────────────────────────────────────────────────────────────────
 import { THEMES } from "@/lib/theme"
+import * as devLogger from "@/lib/devLogger"
 
 // ── Gemini Live config ─────────────────────────────────────────────────────
 const WS_URL      = "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent"
@@ -30,21 +32,22 @@ const LIVE_MODEL  = "models/gemini-2.5-flash-native-audio-preview-12-2025"
 
 // Build theme-aware + context-aware config at connect time
 function buildAriaConfig(themeId: string) {
-  const ariaContext = aria().ariaContext
-  const theme   = THEMES[themeId] ?? THEMES["jewelry"]
+  const ariaContext   = aria().ariaContext
+  const currentPage   = aria().currentPage
+  const theme         = THEMES[themeId] ?? THEMES["jewelry"]
   const { aria: ariaTheme, brand } = theme
 
   // ── Platform context: override functions + system prompt ─────────────────
   if (ariaContext === "platform") {
     const functions = [
-      { name: "navigate_to_demo",
-        description: "Navigate to a live demo of a specific theme",
+      { name: "navigate_to_template",
+        description: "Navigate to a live template of a specific theme",
         parameters: { type: "OBJECT", properties: {
           themeId: { type: "STRING", description: "jewelry | candy | bakery | flowers | wine | restaurant | portfolio | saas" }
         }, required: ["themeId"] } },
       { name: "navigate",
         description: "Navigate to a page",
-        parameters: { type: "OBJECT", properties: { url: { type: "STRING", description: "/, /demos, /demos/[themeId], /themes, /about" } }, required: ["url"] } },
+        parameters: { type: "OBJECT", properties: { url: { type: "STRING", description: "/, /templates, /templates/[themeId], /themes, /about" } }, required: ["url"] } },
       { name: "scroll_page",
         description: "Scroll the page up, down, top, or bottom",
         parameters: { type: "OBJECT", properties: { direction: { type: "STRING", description: "up | down | top | bottom" }, amount: { type: "NUMBER" } }, required: ["direction"] } },
@@ -54,18 +57,18 @@ function buildAriaConfig(themeId: string) {
     ]
     const systemPrompt = `You are Aria — warm, curious, and genuinely excited to help people build something they're proud of.
 You power StoreKit, a platform where anyone can build a beautiful online store using just their voice.
-Your job: help visitors feel welcome, show them what's possible, and guide them toward trying a demo.
+Your job: help visitors feel welcome, show them what's possible, and guide them toward trying a template.
 Never be salesy. Be the kind of guide who makes someone feel like they've come to the right place.
 
-Available demos: jewelry → "Jewelry Store", candy → "Sweet Drops Candy Shop", bakery → "The Bakery", flowers → "Petal & Stem", wine → "The Cellar", restaurant → "Maison Dore Boutique Restaurant", portfolio → "Photographer's Portfolio", saas → "Velo".
+Available templates: jewelry → "Jewelry Store", candy → "Sweet Drops Candy Shop", bakery → "The Bakery", flowers → "Petal & Stem", wine → "The Cellar", restaurant → "Maison Dore Boutique Restaurant", portfolio → "Photographer's Portfolio", saas → "Velo".
 
 STRICT SILENCE RULES — follow exactly:
 - scroll_page: execute silently. Say NOTHING. Zero words. The page moves — that IS the response.
 - navigate: execute silently. Say NOTHING. The page change is the response.
-- navigate_to_demo: execute silently. Say NOTHING.
+- navigate_to_template: execute silently. Say NOTHING.
 
 Keep all responses under 3 sentences.
-When first connected, greet warmly in 1 sentence — introduce yourself and invite them to explore. Example tone: "Hi, I'm Aria — ask me anything, or say 'show me a demo' and I'll take you there."`
+When first connected, greet warmly in 1 sentence — introduce yourself and invite them to explore. Example tone: "Hi, I'm Aria — ask me anything, or say 'show me a template' and I'll take you there."`
     return { voice: "Aoede", functions, systemPrompt }
   }
 
@@ -76,7 +79,7 @@ When first connected, greet warmly in 1 sentence — introduce yourself and invi
         key:   { type: "STRING", description: "short identifier e.g. preferred_name, style_notes, size_preference" },
         value: { type: "STRING", description: "what to remember about the user" },
       }, required: ["key", "value"] } },
-    { name: "navigate",                  description: "Navigate to any page on the site",                                     parameters: { type: "OBJECT", properties: { url:      { type: "STRING", description: ariaContext === "member" ? "/, /dashboard, /admin/editor, /admin/themes, /admin, /products, /collections, /about, /themes, /demos" : "/, /products, /collections, /about, /demos, /themes" } }, required: ["url"] } },
+    { name: "navigate",                  description: "Navigate to any page on the site",                                     parameters: { type: "OBJECT", properties: { url:      { type: "STRING", description: ariaContext === "member" ? "/, /dashboard, /admin/editor, /admin/themes, /admin, /products, /collections, /about, /themes, /templates" : "/, /products, /collections, /about, /templates, /themes" } }, required: ["url"] } },
     { name: "scroll_page",               description: "Scroll the page up, down, top, or bottom",                             parameters: { type: "OBJECT", properties: { direction: { type: "STRING", description: "up | down | top | bottom" }, amount: { type: "NUMBER" } }, required: ["direction"] } },
     { name: "add_to_cart",               description: `Add a product to the cart`,                                            parameters: { type: "OBJECT", properties: { slug: { type: "STRING", description: ariaTheme.products }, name: { type: "STRING" } }, required: ["slug","name"] } },
     { name: "open_cart",                 description: "Open the shopping cart",                                               parameters: { type: "OBJECT", properties: {} } },
@@ -115,6 +118,33 @@ When first connected, greet warmly in 1 sentence — introduce yourself and invi
     { name: "undo_edit",         description: "Undo the last edit",                                                     parameters: { type: "OBJECT", properties: {} } },
     { name: "redo_edit",         description: "Redo the last undone edit",                                              parameters: { type: "OBJECT", properties: {} } },
 
+    // ── Admin + dev functions (member context only) ────────────────────────
+    ...(ariaContext === "member" ? [
+      { name: "navigate_admin",
+        description: "Navigate to an admin or dashboard section by name",
+        parameters: { type: "OBJECT", properties: {
+          section: { type: "STRING", description: "dashboard | editor | themes | media | components | admin | image-scout" },
+        }, required: ["section"] } },
+      { name: "open_dev_hub",
+        description: "Toggle the developer DevHub panel — useful for inspecting state, logs, and components at runtime",
+        parameters: { type: "OBJECT", properties: {} } },
+      { name: "list_components",
+        description: "List all available atomic components in the component registry — their names and categories",
+        parameters: { type: "OBJECT", properties: {} } },
+      { name: "image_scout_search",
+        description: "Search for images on Image Scout for a specific theme and slot. Use when user says 'find images for the hero', 'search for jewelry hero images', etc.",
+        parameters: { type: "OBJECT", properties: {
+          themeId: { type: "STRING", description: "jewelry | candy | bakery | flowers | wine | restaurant | portfolio | saas" },
+          slot:    { type: "STRING", description: "hero | rings | necklaces | about | team-1 | etc." },
+          prompt:  { type: "STRING", description: "Search description for the image" },
+        }, required: ["themeId", "slot", "prompt"] } },
+      { name: "image_scout_cdn_search",
+        description: "Search the existing CDN catalog by meaning. Use when user says 'find me a dark moody image', 'show me all hero images'",
+        parameters: { type: "OBJECT", properties: {
+          query: { type: "STRING", description: "Semantic description of what to find in the CDN" },
+        }, required: ["query"] } },
+    ] : []),
+
     // ── Component editor functions (Task 4.2) ──────────────────────────────
     ...(ariaContext === "member" ? [
       { name: "add_component",
@@ -136,17 +166,38 @@ When first connected, greet warmly in 1 sentence — introduce yourself and invi
           component_id: { type: "STRING", description: "ID of the component instance to remove" },
         }, required: ["component_id"] } },
     ] : []),
+
+    // ── Global functions — available in ALL contexts ────────────────────────
+    { name: "get_changelog",
+      description: "List Aria's recent capability upgrades. Use when user asks 'what's new', 'what can you do', 'what are your capabilities', 'what were your latest upgrades'.",
+      parameters: { type: "OBJECT", properties: {} } },
+    { name: "write_to_report",
+      description: "Write a note to the Session Report Pad. Use when the owner asks you to document something, record a bug, note an observation, or generate a test entry. Also use proactively when something notable happens during a test session.",
+      parameters: { type: "OBJECT", properties: {
+        text: { type: "STRING", description: "The note to write. Be specific and detailed." },
+        type: { type: "STRING", description: "observation | bug | navigation | test | summary | aria_note" },
+      }, required: ["text", "type"] } },
+    { name: "clear_report",
+      description: "Clear all entries from the Session Report Pad. Use when owner says 'clear the report', 'start fresh', 'reset the pad'.",
+      parameters: { type: "OBJECT", properties: {} } },
+    { name: "summarize_session",
+      description: "Generate a structured session summary and write it to the report pad. Use when owner says 'summarize this session', 'generate a report', 'what did we test'.",
+      parameters: { type: "OBJECT", properties: {
+        focus: { type: "STRING", description: "Optional: what aspect to focus the summary on" },
+      } } },
   ]
 
   // Member context: override opening lines, keep rest of personality
   const personaOpening = ariaContext === "member"
-    ? `You are Aria, a voice-powered site builder. You're helping a member build and manage their online store.\nYou can navigate anywhere on the site: dashboard, editor, themes, store pages, and more.\nPersonality: ${ariaTheme.personality}.`
+    ? `You are Aria, the owner's personal runtime assistant and developer companion for ${brand.name}.\nYou can navigate anywhere on the platform, edit the site by voice, document test sessions in the Report Pad, answer questions about your own changelog and capabilities, and generate structured test reports for the coordinator (Claude Code).\nDuring test sessions, proactively use write_to_report to document: pages visited and their state, features tested and whether they worked, bugs or unexpected behavior, and summaries when asked.\nPersonality: ${ariaTheme.personality}.`
     : `You are ${ariaTheme.name}, a voice shopping assistant for ${brand.name} — ${brand.tagline}.\nPersonality: ${ariaTheme.personality}.`
 
   const systemPrompt = `${personaOpening}
 Voice style: concise (1-3 sentences), conversational, natural — never robotic.
 
+Current page: ${currentPage}
 Your capabilities: navigate pages, filter products, add items to cart, read cart, check stock, describe any product by name or the current page, list all products, get recommendations, scroll.
+${ariaContext === "member" ? "Admin capabilities: open the DevHub panel, list components, navigate to any admin section." : ""}
 
 Products: ${ariaTheme.products}
 Categories: ${ariaTheme.categories}
@@ -165,8 +216,16 @@ STRICT SILENCE RULES — follow exactly:
 - describe_product: describe the product warmly in 2-3 sentences. Include price and stock status.
 - list_all_products: list all products warmly, mention prices naturally.
 - recommend_product: speak your recommendation warmly in 2-3 sentences. Be enthusiastic.
+- navigate_admin: execute silently. Say NOTHING.
+- open_dev_hub: one short confirmation (e.g. "DevHub toggled").
+- list_components: speak the component summary naturally in 1-2 sentences.
+- get_changelog: speak the top 3-4 upgrades naturally in 2-3 sentences.
+- write_to_report: execute silently. Say NOTHING. The entry appears in the pad.
+- clear_report: one brief confirmation ("Report cleared.").
+- summarize_session: one brief confirmation after writing ("Summary added to the report pad.").
 
-When first connected, greet the user warmly and briefly — 1-2 sentences max — then ask what they'd like to explore.`
+When first connected, greet the user warmly and briefly — 1-2 sentences max — then ask what they'd like to explore.
+${buildChangelogPrompt()}`
 
   return { voice: ariaTheme.voice, functions, systemPrompt }
 }
@@ -230,6 +289,7 @@ async function handleMessage(event: MessageEvent) {
     _ready = true
     aria().setConnected(true)
     aria().setAriaState("listening")
+    devLogger.log("aria", "system", "ariaConnect", "ready · setupComplete")
     return
   }
 
@@ -254,6 +314,7 @@ async function handleMessage(event: MessageEvent) {
   if (data.toolCall) {
     const calls = ((data.toolCall as Record<string,unknown>).functionCalls ?? []) as Array<{id:string;name:string;args:Record<string,unknown>}>
     for (const call of calls) {
+      devLogger.log("aria", "info", "toolCall", `→ ${call.name}`, call.args)
       const result = await executeCommand(call.name, call.args ?? {})
       _ws?.send(JSON.stringify({
         tool_response: {
@@ -268,14 +329,14 @@ async function handleMessage(event: MessageEvent) {
 async function executeCommand(name: string, args: Record<string, unknown>): Promise<string | undefined> {
   const { dispatchCommand } = aria()
   switch (name) {
-    case "navigate_to_demo": dispatchCommand({ type: "NAVIGATE", url: `/demos/${args.themeId as string}` }); return undefined
+    case "navigate_to_template": dispatchCommand({ type: "NAVIGATE", url: `/templates/${args.themeId as string}` }); return undefined
     case "explain_pricing": return "StoreKit has three tiers: Starter is free and lets you build with Aria. Builder at $29/month adds a custom domain and priority support. Pro at $79/month adds team members, analytics, and advanced AI editing. All plans include Aria voice control."
     case "navigate":        dispatchCommand({ type: "NAVIGATE",    url: args.url as string }); return undefined
     case "scroll_page":     dispatchCommand({ type: "SCROLL",      direction: args.direction as "up"|"down"|"top"|"bottom", amount: (args.amount as number) ?? 400 }); return undefined
     case "add_to_cart": {
       const slug = args.slug as string
       const name = args.name as string
-      if (aria().ariaContext === "demo") {
+      if (aria().ariaContext === "template") {
         const theme = THEMES[aria().activeThemeId]
         const product = theme?.products.find(p => p.slug === slug)
         if (product) {
@@ -311,7 +372,10 @@ async function executeCommand(name: string, args: Record<string, unknown>): Prom
     }
 
     case "describe_current_product": {
-      const slug = document.body.dataset.productSlug
+      // Extract slug from current URL path (/products/[slug]) — no DOM dependency
+      const slugMatch = aria().currentPage.match(/^\/products\/([^/?#]+)/)
+        ?? aria().currentPage.match(/^\/templates\/[^/]+\/products\/([^/?#]+)/)
+      const slug = slugMatch?.[1]
       if (!slug) return "I can't see a product on this page — navigate to a product first."
       const res = await fetch(`/api/product/${slug}`)
       const p = await res.json()
@@ -322,7 +386,7 @@ async function executeCommand(name: string, args: Record<string, unknown>): Prom
 
     case "describe_product": {
       const slug = args.slug as string
-      if (aria().ariaContext === "demo") {
+      if (aria().ariaContext === "template") {
         const theme = THEMES[aria().activeThemeId]
         const p = theme?.products.find(pr => pr.slug === slug)
         if (!p) return "I don't have a product with that name in my catalog."
@@ -341,16 +405,28 @@ async function executeCommand(name: string, args: Record<string, unknown>): Prom
       return `${p.name} — ${p.description ?? "a handcrafted piece"}. Priced at $${p.price.toFixed(2)}, ${stock}.`
     }
 
-    case "navigate_to_product":
-      dispatchCommand({ type: "NAVIGATE", url: `/products/${args.slug as string}` })
+    case "navigate_to_product": {
+      const { ariaContext: ctx, activeThemeId: tid } = aria()
+      const url = ctx === "template"
+        ? `/templates/${tid}/products/${args.slug as string}`
+        : `/products/${args.slug as string}`
+      dispatchCommand({ type: "NAVIGATE", url })
       return undefined
+    }
 
     case "list_all_products": {
-      const theme = THEMES[aria().activeThemeId]
-      if (!theme) return "I couldn't load the product catalog."
-      const list = theme.products
-        .map(p => `${p.name} at $${p.price.toFixed(2)}`)
-        .join(", ")
+      if (aria().ariaContext === "template") {
+        const theme = THEMES[aria().activeThemeId]
+        if (!theme) return "I couldn't load the product catalog."
+        const list = theme.products.map(p => `${p.name} at $${p.price.toFixed(2)}`).join(", ")
+        return `Here's everything we carry: ${list}.`
+      }
+      // Real store: fetch from DB via admin API
+      const res = await fetch("/api/admin/products/list")
+      if (!res.ok) return "I couldn't load the product catalog right now."
+      const products = await res.json() as Array<{ name: string; price: number }>
+      if (!products?.length) return "The catalog is currently empty."
+      const list = products.map(p => `${p.name} at $${p.price.toFixed(2)}`).join(", ")
       return `Here's everything we carry: ${list}.`
     }
 
@@ -530,8 +606,120 @@ async function executeCommand(name: string, args: Record<string, unknown>): Prom
       return undefined
     }
 
+    // ── Admin / dev commands ───────────────────────────────────────────────
+    case "navigate_admin": {
+      const section = args.section as string
+      const urls: Record<string, string> = {
+        dashboard:    "/dashboard",
+        editor:       "/admin/editor",
+        themes:       "/admin/themes",
+        media:        "/admin/media",
+        components:   "/admin/components",
+        "image-scout":"/admin/image-scout",
+        scout:        "/admin/image-scout",
+        admin:        "/admin",
+      }
+      const url = urls[section] ?? "/admin"
+      dispatchCommand({ type: "NAVIGATE", url })
+      return undefined
+    }
+
+    case "open_dev_hub": {
+      const devHubMod = await import("@/lib/devHubStore")
+      devHubMod.toggle()
+      devLogger.log("aria", "info", "voiceCmd", "DevHub toggled via voice")
+      return undefined
+    }
+
+    case "list_components": {
+      const res = await fetch("/api/components")
+      if (!res.ok) return "I couldn't load the component registry."
+      const components = await res.json() as Array<{ slug: string; name: string; category: string }>
+      if (!components?.length) return "The component registry is empty."
+      const grouped: Record<string, string[]> = {}
+      for (const c of components) {
+        grouped[c.category] = grouped[c.category] ? [...grouped[c.category], c.name] : [c.name]
+      }
+      const summary = Object.entries(grouped)
+        .map(([cat, names]) => `${cat}: ${names.join(", ")}`)
+        .join(". ")
+      return `${components.length} components registered. ${summary}.`
+    }
+
+    case "image_scout_search": {
+      const themeId = args.themeId as string
+      const slot    = args.slot    as string
+      const prompt  = args.prompt  as string
+      // Navigate to Image Scout with pre-filled params
+      dispatchCommand({ type: "NAVIGATE", url: `/admin/image-scout?theme=${themeId}&slot=${slot}&q=${encodeURIComponent(prompt)}` })
+      return `Navigating to Image Scout — searching for ${slot} images for the ${themeId} theme.`
+    }
+
+    case "image_scout_cdn_search": {
+      const query = args.query as string
+      const res = await fetch(`/api/admin/image-scout/catalog?q=${encodeURIComponent(query)}`)
+      if (!res.ok) return "I couldn't search the CDN catalog."
+      const data = await res.json() as { results: Array<{ r2Key: string; altText: string; themeId: string; slot: string }> }
+      if (!data.results?.length) return "No matching images found in the CDN catalog."
+      const list = data.results.slice(0, 3).map(r => `${r.themeId}/${r.slot}: ${r.altText || r.r2Key}`).join(". ")
+      return `Found ${data.results.length} images. Top matches: ${list}.`
+    }
+
+    case "get_changelog":
+      return ARIA_CHANGELOG.slice(0, 5)
+        .map((e) => `• ${e.capability} (${e.date}): ${e.description}`)
+        .join("\n")
+
+    case "write_to_report": {
+      const { useReportPad } = await import("@/store/reportPad")
+      useReportPad.getState().addEntry(
+        args.text as string,
+        (args.type as string) as import("@/store/reportPad").EntryType
+      )
+      return undefined
+    }
+
+    case "clear_report": {
+      const { useReportPad } = await import("@/store/reportPad")
+      useReportPad.getState().clearAll()
+      return undefined
+    }
+
+    case "summarize_session": {
+      const { useReportPad } = await import("@/store/reportPad")
+      const { entries } = useReportPad.getState()
+      const focus = args.focus as string | undefined
+      const counts = entries.reduce<Record<string, number>>((acc, e) => {
+        acc[e.type] = (acc[e.type] ?? 0) + 1
+        return acc
+      }, {})
+      const countStr = Object.entries(counts).map(([t, n]) => `${n} ${t}`).join(", ")
+      const recentEntries = entries.slice(-5).map((e) => `[${e.timestamp}] ${e.type}: ${e.text}`).join("\n")
+      const summary = [
+        `## Session Summary${focus ? ` — ${focus}` : ""}`,
+        `**Total entries:** ${entries.length} (${countStr || "none"})`,
+        `**Session page:** ${aria().currentPage}`,
+        `**Recent activity:**\n${recentEntries || "No entries yet."}`,
+      ].join("\n")
+      useReportPad.getState().addEntry(summary, "summary")
+      return undefined
+    }
+
     default: return undefined
   }
+}
+
+// ── Send silent page context update to a live session ─────────────────────
+// Uses turn_complete:false so Aria receives context without speaking a response
+export function sendPageContextToAria(pathname: string) {
+  if (!_ws || _ws.readyState !== WebSocket.OPEN || !_ready) return
+  _ws.send(JSON.stringify({
+    client_content: {
+      turns: [{ role: "user", parts: [{ text: `[SYSTEM — do not respond] Page changed to: ${pathname}` }] }],
+      turn_complete: false,
+    },
+  }))
+  devLogger.log("aria", "system", "pageContext", `page → ${pathname}`)
 }
 
 // ── Send text to Aria (triggers her to speak) ──────────────────────────────
@@ -555,6 +743,7 @@ export async function ariaConnect() {
   const { voice: ARIA_VOICE, functions: ARIA_FUNCTIONS, systemPrompt: BASE_SYSTEM_PROMPT } = buildAriaConfig(aria().activeThemeId)
 
   aria().setAriaState("connecting")
+  devLogger.log("aria", "info", "ariaConnect", `connecting · ctx=${aria().ariaContext} · theme=${aria().activeThemeId}`)
   _ready = false
   _queue = []
   _playing = false
@@ -618,8 +807,12 @@ export async function ariaConnect() {
       }))
     }
     ws.onmessage = handleMessage
-    ws.onerror   = () => toast.error("Aria: WebSocket error — check API key or network")
+    ws.onerror   = () => {
+      devLogger.log("aria", "error", "ariaConnect", "WebSocket error — check API key or network")
+      toast.error("Aria: WebSocket error — check API key or network")
+    }
     ws.onclose   = (e) => {
+      devLogger.log("aria", "warn", "ariaConnect", `disconnected · code=${e.code}`, e.reason || undefined)
       if (e.code !== 1000 && e.code !== 1001) {
         toast.error(`Aria disconnected (${e.code}): ${e.reason || "no reason"}`, { duration: 6000 })
       }

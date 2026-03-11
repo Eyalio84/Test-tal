@@ -71,11 +71,11 @@ export function PlatformHero() {
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row items-center gap-3 mt-1">
           <Link
-            href="/demos"
+            href="/templates"
             className="px-7 py-3 rounded-full font-medium text-white transition-opacity hover:opacity-90"
             style={{ backgroundColor: "var(--theme-accent, #c9a96e)" }}
           >
-            See live demos →
+            See live templates →
           </Link>
           <Link
             href="/dashboard"

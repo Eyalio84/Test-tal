@@ -38,8 +38,8 @@ interface AriaStore {
   setActiveThemeId: (id: string) => void
 
   // Aria context — controls which persona/system-prompt Aria uses
-  ariaContext: "platform" | "demo" | "member"
-  setAriaContext: (ctx: "platform" | "demo" | "member") => void
+  ariaContext: "platform" | "template" | "member"
+  setAriaContext: (ctx: "platform" | "template" | "member") => void
 
   // ── Editor mode ──────────────────────────────────────────────────────────
   editorMode:     boolean
@@ -88,7 +88,7 @@ export const useAria = create<AriaStore>((set, get) => ({
   setActiveThemeId: (activeThemeId) => set({ activeThemeId }),
 
   // Aria context
-  ariaContext: "demo",
+  ariaContext: "template",
   setAriaContext: (ariaContext) => set({ ariaContext }),
 
   // Editor initial state

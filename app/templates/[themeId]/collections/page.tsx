@@ -7,7 +7,7 @@ export async function generateStaticParams() {
   return Object.keys(THEMES).map((id) => ({ themeId: id }))
 }
 
-export default async function DemoCollectionsPage({ params }: { params: Promise<{ themeId: string }> }) {
+export default async function TemplateCollectionsPage({ params }: { params: Promise<{ themeId: string }> }) {
   const { themeId } = await params
   const theme = await resolveTheme(themeId).catch(() => null)
   if (!theme) notFound()
@@ -16,7 +16,7 @@ export default async function DemoCollectionsPage({ params }: { params: Promise<
     <div className="pt-24 pb-20">
       <div className="max-w-7xl mx-auto px-6">
         <h1 className="font-serif text-3xl text-ink mb-3">Collections</h1>
-        <p className="text-ink/50 text-sm mb-10">{theme.brand.name} — demo store</p>
+        <p className="text-ink/50 text-sm mb-10">{theme.brand.name} — template store</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {theme.collections.map((collection) => (

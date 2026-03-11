@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useAria } from "@/store/aria"
 import { useA11y } from "@/store/a11y"
 import { useAriaLive } from "@/hooks/useAriaLive"
+import { useAriaPageContext } from "@/hooks/useAriaPageContext"
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const MicIcon = () => (
@@ -165,6 +166,9 @@ export function FloatingDock() {
   const { openPanel } = useA11y()
   const { connect, disconnect } = useAriaLive()
   const [mounted, setMounted] = useState(false)
+
+  // Auto-sync Aria context (platform/demo/member) with current page
+  useAriaPageContext()
 
   useEffect(() => { setMounted(true) }, [])
   if (!mounted) return null

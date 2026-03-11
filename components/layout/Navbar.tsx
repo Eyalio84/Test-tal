@@ -4,10 +4,12 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
+import { useSession } from "next-auth/react"
 import { AuthButtons } from "@/components/ui/AuthButtons"
 import { CartButton } from "@/components/ui/CartButton"
 import { useWishlist } from "@/store/wishlist"
 import { THEMES } from "@/lib/theme"
+import * as devHubStore from "@/lib/devHubStore"
 
 function WishlistButton() {
   const count = useWishlist((s) => s.slugs.length)
@@ -25,6 +27,19 @@ function WishlistButton() {
   )
 }
 
+// Dev-only button — only rendered when process.env.NODE_ENV === 'development'
+function DevHubButton({ onClose }: { onClose: () => void }) {
+  return (
+    <button
+      onClick={() => { devHubStore.toggle(); onClose() }}
+      className="text-left text-xs tracking-widest uppercase text-blue-500 hover:text-blue-700 transition font-mono flex items-center gap-2"
+    >
+      <span className="inline-block w-2 h-2 rounded-full bg-blue-500" />
+      DEV HUB
+    </button>
+  )
+}
+
 const storeNavLinks = [
   { label: "Shop",        href: "/products" },
   { label: "Collections", href: "/collections" },
@@ -35,16 +50,19 @@ const storeNavLinks = [
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const path = usePathname()
+  const { data: session } = useSession()
+  // Dev hub only shown in development builds, only when signed in
+  const showDev = process.env.NODE_ENV === "development" && !!session?.user
 
   // Context detection
-  const isPlatform = path === "/" || path === "/demos" || path.startsWith("/pricing")
-  const isDemoMatch = path.match(/^\/demos\/([^/]+)/)
-  const isDemo = !!isDemoMatch
-  const themeIdFromPath = isDemoMatch?.[1] ?? null
+  const isPlatform = path === "/" || path === "/templates" || path.startsWith("/pricing")
+  const isTemplateMatch = path.match(/^\/templates\/([^/]+)/)
+  const isTemplate = !!isTemplateMatch
+  const themeIdFromPath = isTemplateMatch?.[1] ?? null
   const isMember = path.startsWith("/dashboard")
 
-  // Demo brand name (static lookup, no Zustand needed)
-  const demoBrand = themeIdFromPath ? (THEMES[themeIdFromPath]?.brand.name ?? themeIdFromPath) : ""
+  // Template brand name (static lookup, no Zustand needed)
+  const templateBrand = themeIdFromPath ? (THEMES[themeIdFromPath]?.brand.name ?? themeIdFromPath) : ""
 
   // ── Platform nav ──────────────────────────────────────────────────────────
   if (isPlatform) {
@@ -56,8 +74,8 @@ export function Navbar() {
           </Link>
 
           <nav aria-label="Main navigation" className="hidden md:flex items-center gap-8">
-            <Link href="/demos" className="text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition">
-              Demos
+            <Link href="/templates" className="text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition">
+              Templates
             </Link>
             <Link href="/pricing" className="text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition">
               Pricing
@@ -72,7 +90,7 @@ export function Navbar() {
               Sign in
             </Link>
             <Link
-              href="/demos"
+              href="/templates"
               className="text-xs tracking-widest uppercase bg-stone-900 text-white px-4 py-2 rounded hover:bg-stone-700 transition"
             >
               Start free →
@@ -100,23 +118,24 @@ export function Navbar() {
 
         {mobileOpen && (
           <div id="mobile-menu" role="navigation" aria-label="Mobile navigation" className="md:hidden bg-white border-b border-stone-100 px-6 py-4 flex flex-col gap-4">
-            <Link href="/demos" onClick={() => setMobileOpen(false)} className="text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition">Demos</Link>
+            <Link href="/templates" onClick={() => setMobileOpen(false)} className="text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition">Templates</Link>
             <Link href="/pricing" onClick={() => setMobileOpen(false)} className="text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition">Pricing</Link>
             <Link href="/api/auth/signin" onClick={() => setMobileOpen(false)} className="text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition">Sign in</Link>
+            {showDev && <DevHubButton onClose={() => setMobileOpen(false)} />}
           </div>
         )}
       </header>
     )
   }
 
-  // ── Demo nav ──────────────────────────────────────────────────────────────
-  if (isDemo && themeIdFromPath) {
-    const base = `/demos/${themeIdFromPath}`
+  // ── Template nav ──────────────────────────────────────────────────────────────
+  if (isTemplate && themeIdFromPath) {
+    const base = `/templates/${themeIdFromPath}`
     return (
       <header aria-label="Site header" className="fixed top-0 inset-x-0 z-40 bg-white/95 backdrop-blur-sm border-b border-stone-100">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href={base} className="font-serif text-xl tracking-wider text-ink">
-            {demoBrand.toUpperCase()}
+            {templateBrand.toUpperCase()}
           </Link>
 
           <nav aria-label="Main navigation" className="hidden md:flex items-center gap-8">
@@ -129,10 +148,10 @@ export function Navbar() {
             <WishlistButton />
             <CartButton />
             <Link
-              href="/demos"
+              href="/templates"
               className="text-xs tracking-widest uppercase text-ink/50 hover:text-ink transition hidden md:inline"
             >
-              ← All demos
+              ← All templates
             </Link>
             {/* Burger — mobile only */}
             <button
@@ -160,7 +179,8 @@ export function Navbar() {
             <Link href={`${base}/products`} onClick={() => setMobileOpen(false)} className="text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition">Shop</Link>
             <Link href={`${base}/collections`} onClick={() => setMobileOpen(false)} className="text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition">Collections</Link>
             <Link href={`${base}/about`} onClick={() => setMobileOpen(false)} className="text-xs tracking-widest uppercase text-ink/60 hover:text-ink transition">About</Link>
-            <Link href="/demos" onClick={() => setMobileOpen(false)} className="text-xs tracking-widest uppercase text-ink/50 hover:text-ink transition">← All demos</Link>
+            <Link href="/templates" onClick={() => setMobileOpen(false)} className="text-xs tracking-widest uppercase text-ink/50 hover:text-ink transition">← All templates</Link>
+            {showDev && <DevHubButton onClose={() => setMobileOpen(false)} />}
           </div>
         )}
       </header>
@@ -221,6 +241,7 @@ export function Navbar() {
             >
               Sign out
             </button>
+            {showDev && <DevHubButton onClose={() => setMobileOpen(false)} />}
           </div>
         )}
       </header>
@@ -292,6 +313,7 @@ export function Navbar() {
           <div className="pt-2 border-t border-stone-100">
             <AuthButtons />
           </div>
+          {showDev && <DevHubButton onClose={() => setMobileOpen(false)} />}
         </div>
       )}
     </header>
