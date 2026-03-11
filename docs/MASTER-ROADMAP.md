@@ -41,7 +41,7 @@ Business model: API proxy (buy Gemini capacity in bulk, resell via subscription 
 | ── | **📦 FOUNDATION SEALED**   | closed      | Push: voice editor + themes + dev infra — foundation is done |
 | EP | **Editor Platform** (P4+P5+P6) | **IN PROGRESS** | 20+ components + 5 layouts + inline edit overlay → ships as one release |
 | 4  | ↳ Atomic Component Library | ✅ COMPLETE (2026-03-11) | Registry, CRUD, showcase, palette, SVG previews, 163 tests  |
-| 5  | ↳ Templates + Aria Assistant | PENDING   | demos→templates, product pages, Report Pad, Aria changelog   |
+| 5  | ↳ Templates + Aria Assistant | ✅ COMPLETE (2026-03-11) | demos→templates, product pages, Report Pad, Aria changelog |
 | 6  | ↳ Visual Editor v1 (inline overlay) | PENDING | Edit mode toggle on live site, floating config panels, Aria controlled |
 | ── | **📦 PACKAGE POINT A**     | after EP    | Push: GUI Builder tier live — inline editor + palette + layouts |
 | IR | Infrastructure Readiness   | PENDING     | Upstash rate-limit, Resend email, pgvector, Neon RLS         |
@@ -232,7 +232,7 @@ for the majority of tasks in any planning workflow.
 
 ---
 
-## Plan #5 — Templates + Aria Personal Assistant (PENDING)
+## Plan #5 — Templates + Aria Personal Assistant (✅ COMPLETE — 2026-03-11)
 
 ### Aria's Dual Role (locked 2026-03-11)
 - **Customer-facing:** Theme-specific shopping assistant with full product navigation, cart, and recommendations
