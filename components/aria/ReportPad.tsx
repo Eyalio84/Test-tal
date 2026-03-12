@@ -4,12 +4,10 @@ import { useState } from "react"
 import { useReportPad } from "@/store/reportPad"
 
 export function ReportPad() {
-  const { entries, isOpen, clearAll, exportMarkdown } = useReportPad((state) => ({
-    entries: state.entries,
-    isOpen: state.isOpen,
-    clearAll: state.clearAll,
-    exportMarkdown: state.exportMarkdown,
-  }))
+  const entries       = useReportPad((state) => state.entries)
+  const isOpen        = useReportPad((state) => state.isOpen)
+  const clearAll      = useReportPad((state) => state.clearAll)
+  const exportMarkdown = useReportPad((state) => state.exportMarkdown)
   const [copied, setCopied] = useState(false)
 
   if (!isOpen) return null

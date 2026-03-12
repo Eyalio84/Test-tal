@@ -3,11 +3,9 @@
 import { useReportPad } from "@/store/reportPad"
 
 export function ReportPadToggle() {
-  const { entries, isOpen, toggleOpen } = useReportPad((state) => ({
-    entries: state.entries,
-    isOpen: state.isOpen,
-    toggleOpen: state.toggleOpen,
-  }))
+  const entries    = useReportPad((state) => state.entries)
+  const isOpen     = useReportPad((state) => state.isOpen)
+  const toggleOpen = useReportPad((state) => state.toggleOpen)
 
   return (
     <button
