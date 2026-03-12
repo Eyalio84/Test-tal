@@ -6,6 +6,8 @@ export interface ChangelogEntry {
 }
 
 export const ARIA_CHANGELOG: ChangelogEntry[] = [
+  { date: "2026-03-12", version: "P5+", capability: "Guided platform tour",  description: "Can walk the owner through the entire platform step-by-step, logging each phase to the Report Pad." },
+  { date: "2026-03-12", version: "P5+", capability: "Platform status report", description: "Can give a full structured status of what's built, what's live, and what's next on request." },
   { date: "2026-03-11", version: "P5", capability: "Template navigation",    description: "Can navigate to any product in all 8 template stores by name." },
   { date: "2026-03-11", version: "P5", capability: "Session Report Pad",     description: "Can write structured test notes to the Report Pad and generate session summaries." },
   { date: "2026-03-11", version: "P5", capability: "Individual product pages", description: "All 8 template stores now have full product detail pages with add-to-cart." },

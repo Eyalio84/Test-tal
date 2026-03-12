@@ -145,6 +145,18 @@ When first connected, greet warmly in 1 sentence — introduce yourself and invi
         }, required: ["query"] } },
     ] : []),
 
+    // ── Platform tour + status (member only) ──────────────────────────────
+    ...(ariaContext === "member" ? [
+      { name: "start_platform_tour",
+        description: "Start a guided walkthrough of the entire platform. Use when owner says 'give me a tour', 'show me what's built', 'walk me through the platform', 'orient me', 'what can I test', 'where do I start'.",
+        parameters: { type: "OBJECT", properties: {
+          phase: { type: "STRING", description: "Which phase to start from: homepage | templates | dashboard | admin | all (default: all)" },
+        } } },
+      { name: "platform_status",
+        description: "Report the current state of the platform — what's built, what's live, and what's next. Use when owner asks 'what's the current state', 'what have we built', 'where are we', 'catch me up'.",
+        parameters: { type: "OBJECT", properties: {} } },
+    ] : []),
+
     // ── Component editor functions (Task 4.2) ──────────────────────────────
     ...(ariaContext === "member" ? [
       { name: "add_component",
@@ -223,8 +235,13 @@ STRICT SILENCE RULES — follow exactly:
 - write_to_report: execute silently. Say NOTHING. The entry appears in the pad.
 - clear_report: one brief confirmation ("Report cleared.").
 - summarize_session: one brief confirmation after writing ("Summary added to the report pad.").
+- start_platform_tour: begin the tour immediately. Navigate to the first phase and speak naturally.
+- platform_status: read the status report naturally in 3-4 sentences. Be clear and grounding.
 
-When first connected, greet the user warmly and briefly — 1-2 sentences max — then ask what they'd like to explore.
+${ariaContext === "member"
+  ? `When first connected: greet the owner proactively. Mention the single most recent upgrade from your changelog. Then say what's available right now — you can give a full platform tour, run a test session, edit by voice, or navigate anywhere. Invite them to say "give me a tour" or tell you what they want. Keep it to 2-3 sentences. Be warm and confident — you know this platform well.`
+  : `When first connected, greet the user warmly and briefly — 1-2 sentences max — then ask what they'd like to explore.`
+}
 ${buildChangelogPrompt()}`
 
   return { voice: ariaTheme.voice, functions, systemPrompt }
@@ -663,6 +680,71 @@ async function executeCommand(name: string, args: Record<string, unknown>): Prom
       if (!data.results?.length) return "No matching images found in the CDN catalog."
       const list = data.results.slice(0, 3).map(r => `${r.themeId}/${r.slot}: ${r.altText || r.r2Key}`).join(". ")
       return `Found ${data.results.length} images. Top matches: ${list}.`
+    }
+
+    case "platform_status":
+      return [
+        "## Platform Status — StoreKit (2026-03-12)",
+        "",
+        "### What's live",
+        "- **Real store:** Jewelry store at `/` with Stripe checkout, product pages, cart, DB-backed",
+        "- **8 template stores:** `/templates/[themeId]` — each has homepage, product listing, product detail pages, Zustand cart, 'Create your store' CTA. Jewelry template is the real store underneath.",
+        "- **Aria (you):** 3 contexts — platform (homepage), template (shopping AI), member (owner assistant)",
+        "- **Report Pad:** bottom-left, color-coded entries, exportable .md",
+        "- **Admin panel:** themes switcher, content editor, media manager, Image Scout (Pexels + R2), component registry",
+        "- **163 tests passing. TypeScript clean. Deployed on Cloud Run.**",
+        "",
+        "### What's built but worth testing",
+        "- Template product pages: `/templates/jewelry/products/[slug]` (DB) vs `/templates/candy/products/[slug]` (static)",
+        "- Report Pad: write_to_report, summarize_session, export as .md",
+        "- Aria changelog: ask 'what's new' for full list",
+        "- Component registry: `/admin/components`",
+        "- Image Scout: `/admin/image-scout`",
+        "",
+        "### What's next (not built)",
+        "- **P6:** Visual Editor — inline edit overlay on the live site. Plan is written. Haiku session prompt is ready at `docs/plans/2026-03-11-p6-haiku-session.md`.",
+      ].join("\n")
+
+    case "start_platform_tour": {
+      const phase = (args.phase as string | undefined) ?? "all"
+      const { useReportPad } = await import("@/store/reportPad")
+      useReportPad.getState().addEntry(`Platform tour started — phase: ${phase}`, "navigation")
+      return [
+        `## Platform Tour Script — phase: ${phase}`,
+        "",
+        "You are now guiding the owner through the StoreKit platform. Walk through each phase below in order.",
+        "For each phase: navigate there first using your navigate functions, speak the description naturally (don't read it verbatim), then pause and ask if they want to continue or explore that area more.",
+        "Log each phase to the report pad with write_to_report (type: navigation) as you go.",
+        "Keep each phase to 2-3 sentences of speech. Be warm, confident, and specific.",
+        "",
+        "PHASE 1 — Homepage",
+        "Navigate to: /",
+        "Speak: Introduce the homepage — it's the customer-facing storefront. It shows the platform hero, a showcase of all 8 template stores, and pricing. This is what potential customers see first.",
+        "Log: 'Tour Phase 1: Homepage — platform hero + 8 template showcase + pricing'",
+        "",
+        "PHASE 2 — Template Stores",
+        "Navigate to: /templates/jewelry",
+        "Speak: This is the jewelry template — which is also the real owner store, connected to the live database and Stripe. There are 8 templates total: jewelry, candy, bakery, flowers, wine, restaurant, portfolio, and saas. Each has its own brand, personality, and full shopping experience. I can navigate to any of them by voice.",
+        "Log: 'Tour Phase 2: Templates — jewelry store (real DB + Stripe)'",
+        "",
+        "PHASE 3 — Product Pages",
+        "Navigate to: /templates/jewelry/products (or the first product slug if you know it)",
+        "Speak: Every template now has individual product pages. You can browse, add to cart, see related products, and trust signals. For the jewelry store this connects to real Stripe checkout — for the other 7 templates, it's a demo cart with a 'Create your store' CTA.",
+        "Log: 'Tour Phase 3: Product pages — jewelry DB-backed, other 7 static'",
+        "",
+        "PHASE 4 — Dashboard",
+        "Navigate to: /dashboard",
+        "Speak: This is the member dashboard — the owner's command center. Site overview, Aria memory panel, and subscription status live here.",
+        "Log: 'Tour Phase 4: Member dashboard'",
+        "",
+        "PHASE 5 — Admin",
+        "Navigate to: /admin",
+        "Speak: The admin panel is full control. Theme switcher, content editor with draft/publish workflow, media manager, Image Scout for curating R2 CDN images, and the component registry. Everything here feeds the live site.",
+        "Log: 'Tour Phase 5: Admin panel — themes, editor, media, image scout, components'",
+        "",
+        "After Phase 5: Tell the owner the tour is complete. Offer to summarize the session with summarize_session, or ask if they want to dive deeper into any specific area.",
+        "Log a completion note to the report pad.",
+      ].join("\n")
     }
 
     case "get_changelog":
