@@ -9,7 +9,6 @@ import { Footer }              from "@/components/layout/Footer"
 import { FloatingDock }        from "@/components/ui/FloatingDock"
 import { AriaCommandDispatcher } from "@/components/aria/AriaCommandDispatcher"
 import { ReportPad }            from "@/components/aria/ReportPad"
-import { ReportPadToggle }      from "@/components/aria/ReportPadToggle"
 import { SkipLink }            from "@/components/ui/SkipLink"
 import { LiveRegion }          from "@/components/ui/LiveRegion"
 import { AccessibilityPanel }  from "@/components/ui/AccessibilityPanel"
@@ -65,7 +64,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <FloatingDock />
           <AriaCommandDispatcher />
           <ReportPad />
-          <ReportPadToggle />
           <LiveRegion />
           <AccessibilityPanel />
           <ComponentPaletteDrawer />

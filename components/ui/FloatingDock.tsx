@@ -5,6 +5,7 @@ import { useAria } from "@/store/aria"
 import { useA11y } from "@/store/a11y"
 import { useAriaLive } from "@/hooks/useAriaLive"
 import { useAriaPageContext } from "@/hooks/useAriaPageContext"
+import { useReportPad } from "@/store/reportPad"
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const MicIcon = () => (
@@ -32,6 +33,18 @@ const SparkleIcon = () => (
     <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2zm0 0"/>
     <path d="M5 3l.9 2.6L8.5 6l-2.6.9L5 9.5l-.9-2.6L1.5 6l2.6-.9L5 3zm14 0l.9 2.6L22.5 6l-2.6.9L19 9.5l-.9-2.6L15.5 6l2.6-.9L19 3z" opacity=".6"/>
   </svg>
+)
+const ReportPadIcon = ({ count }: { count: number }) => (
+  <div className="relative flex items-center justify-center w-5 h-5">
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+      <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 3a1 1 0 0 1 1-1h2a1 1 0 0 1 0 2h-2a1 1 0 0 1-1-1zm-4 0a1 1 0 0 1 1-1h.5a1 1 0 0 1 0 2H9a1 1 0 0 1-1-1zm-1 4h12v1H7V10zm0 3h12v1H7v-1zm0 3h8v1H7v-1z"/>
+    </svg>
+    {count > 0 && (
+      <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+        {count > 9 ? "9+" : count}
+      </span>
+    )}
+  </div>
 )
 const CloseIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-5 h-5">
@@ -166,6 +179,8 @@ export function FloatingDock() {
   const { openPanel } = useA11y()
   const { connect, disconnect } = useAriaLive()
   const [mounted, setMounted] = useState(false)
+  const reportEntries  = useReportPad((s) => s.entries)
+  const toggleReport   = useReportPad((s) => s.toggleOpen)
 
   // Auto-sync Aria context (platform/demo/member) with current page
   useAriaPageContext()
@@ -181,6 +196,12 @@ export function FloatingDock() {
   }
 
   const actions = [
+    {
+      icon:    <span className="text-white"><ReportPadIcon count={reportEntries.length} /></span>,
+      label:   "Session Report",
+      onClick: () => { toggleReport(); setOpen(false) },
+      accent:  "linear-gradient(135deg, #1e293b, #0f172a)",
+    },
     {
       icon:    <span className="text-white"><A11yIcon /></span>,
       label:   "Accessibility",

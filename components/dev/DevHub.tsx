@@ -54,8 +54,10 @@ export function DevHub() {
   const [tab, setTab]     = React.useState<Tab>("query")
   const [stats, setStats] = React.useState(devLogger.getStats())
   const [mounted, setMounted] = React.useState(false)
-  const editMode      = useEditMode((s) => s.editMode)
+  const editMode       = useEditMode((s) => s.editMode)
+  const showPalette    = useEditMode((s) => s.showPalette)
   const toggleEditMode = useEditMode((s) => s.toggleEditMode)
+  const togglePalette  = useEditMode((s) => s.togglePalette)
 
   React.useEffect(() => { setMounted(true) }, [])
 
@@ -136,7 +138,7 @@ export function DevHub() {
           <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
             <button
               onClick={toggleEditMode}
-              title="Toggle edit mode"
+              title="Toggle inline section editor"
               style={{
                 ...hdrBtnStyle,
                 background: editMode ? "#f59e0b" : "rgba(255,255,255,0.08)",
@@ -145,6 +147,18 @@ export function DevHub() {
               }}
             >
               {editMode ? "✕ EDIT" : "✏ EDIT"}
+            </button>
+            <button
+              onClick={togglePalette}
+              title="Toggle component palette"
+              style={{
+                ...hdrBtnStyle,
+                background: showPalette ? "#6366f1" : "rgba(255,255,255,0.08)",
+                color: showPalette ? "#fff" : "#94a3b8",
+                fontWeight: "bold",
+              }}
+            >
+              ⊞ COMPS
             </button>
             <button onClick={handleCopyReport} style={hdrBtnStyle} title="Copy log report">CPY</button>
             <button onClick={handleClear}      style={hdrBtnStyle} title="Clear all logs">CLR</button>

@@ -14,7 +14,7 @@ interface Component {
 }
 
 export function ComponentPaletteDrawer() {
-  const { editMode } = useEditMode()
+  const showPalette = useEditMode((s) => s.showPalette)
   const { addComponent } = useCanvas()
 
   const { data: components = [] } = useQuery<Component[]>({
@@ -41,9 +41,7 @@ export function ComponentPaletteDrawer() {
     toast.success(`Added ${name} ✓`)
   }
 
-  if (!editMode) {
-    return null
-  }
+  if (!showPalette) return null
 
   return (
     <div className="fixed left-0 top-0 z-40 h-screen w-60 bg-stone-900 text-white overflow-y-auto transition-transform border-r border-stone-700">
