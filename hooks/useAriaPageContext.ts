@@ -17,7 +17,8 @@ function inferContext(pathname: string): {
     return { context: "platform" }
   }
 
-  // /dashboard, /admin, /products, /collections, /about, /wishlist, etc.
+  // /pages (page manager) and /dashboard are member context
+  // /admin, /products, /collections, /about, /wishlist, etc.
   return { context: "member" }
 }
 

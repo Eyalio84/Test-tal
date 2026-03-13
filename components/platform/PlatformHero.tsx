@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { EditOverlay } from "@/components/editor/EditOverlay"
 
-export function PlatformHero() {
+export default function PlatformHero() {
   return (
     <EditOverlay sectionId="hero" className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden">
       <section

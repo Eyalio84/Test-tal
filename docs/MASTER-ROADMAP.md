@@ -1,6 +1,6 @@
 # Master Roadmap — Voice-AI Website Builder Platform
 # Status tracker across all plan-mode / implementation sessions
-# Last updated: 2026-03-11
+# Last updated: 2026-03-13
 
 ---
 
@@ -37,13 +37,13 @@ Business model: API proxy (buy Gemini capacity in bulk, resell via subscription 
 | 2  | Aria-as-Editor             | ✅ COMPLETE | Voice editing → SiteContent writes, live preview, undo/redo  |
 | 3  | Theme Pack Polish          | ✅ COMPLETE | Runtime theme switching, 8 themes, /themes showcase, /admin/themes |
 | PP | Platform Pivot             | ✅ COMPLETE | /demos showcase, multi-tenant Site model, 3-context Aria, member workspace |
-| DI | **Development Infrastructure** | ✅ COMPLETE (2026-03-08) | Private CDN, 7 dev tools, 55 tests, storekit-planner plugin |
+| DI | **Development Infrastructure** | ✅ COMPLETE (2026-03-08) | Private CDN, 7 dev tools, storekit-planner plugin (183 tests total as of EP) |
 | ── | **📦 FOUNDATION SEALED**   | closed      | Push: voice editor + themes + dev infra — foundation is done |
-| EP | **Editor Platform** (P4+P5+P6) | **IN PROGRESS** | 20+ components + 5 layouts + inline edit overlay → ships as one release |
+| EP | **Editor Platform** (P4+P5+P6) | ✅ COMPLETE (2026-03-13) | Components + templates + inline editor + platform shell |
 | 4  | ↳ Atomic Component Library | ✅ COMPLETE (2026-03-11) | Registry, CRUD, showcase, palette, SVG previews, 163 tests  |
 | 5  | ↳ Templates + Aria Assistant | ✅ COMPLETE (2026-03-11) | demos→templates, product pages, Report Pad, Aria changelog |
-| 6  | ↳ Visual Editor v1 (inline overlay) | PENDING | Edit mode toggle on live site, floating config panels, Aria controlled |
-| ── | **📦 PACKAGE POINT A**     | after EP    | Push: GUI Builder tier live — inline editor + palette + layouts |
+| 6  | ↳ Platform Shell + Editor   | ✅ COMPLETE (2026-03-13) | Shell UI, Page model, template cloning, inline overlay, draggable orb |
+| ── | **📦 PACKAGE POINT A**     | ready       | Push: GUI Builder tier live — shell + editor + palette + page composition |
 | IR | Infrastructure Readiness   | PENDING     | Upstash rate-limit, Resend email, pgvector, Neon RLS         |
 | 7  | Visual Editor v2           | PENDING     | Aria integrated into canvas, voice + mouse hybrid            |
 | 8  | Theme Marketplace UI       | PENDING     | Preview, install, switch themes — the storefront             |
@@ -196,10 +196,11 @@ for the majority of tasks in any planning workflow.
 
 ---
 
-## EP — Editor Platform (IN PROGRESS — P4 batches 1-7 done)
+## EP — Editor Platform (✅ COMPLETE — 2026-03-13)
 > P4 + P5 + P6 merged into one coordinated release.
 > Ships as a single coherent milestone so the Basic-tier GUI builder is a complete product.
 > Tier gating: Basic = full editor + palette · Pro = + Aria voice on canvas · Max = + Aria proactive suggestions
+> **183 tests passing** as of completion.
 
 ---
 
@@ -213,22 +214,22 @@ for the majority of tasks in any planning workflow.
 - Editor palette: `/dashboard/editor` — drag-to-place from sidebar
 - Aria receives full component catalog on connect → executes by voice: "add testimonial card after hero"
 
-### Remaining (Batches 8-9)
-- [ ] **Batch 8 (Task 5.1):** SVG preview generation script + R2 upload for all components
-- [ ] **Batch 8 (Task 5.2):** Smoke test — palette renders, drag-to-place fires, Aria "add X" works
-- [ ] **Batch 9 (Task 6.1):** Integration tests — palette → canvas → save → publish full flow
+### Remaining (Batches 8-9) — COMPLETE
+- [x] **Batch 8 (Task 5.1):** SVG preview generation script + R2 upload for all components
+- [x] **Batch 8 (Task 5.2):** Smoke test — palette renders, drag-to-place fires, Aria "add X" works
+- [x] **Batch 9 (Task 6.1):** Integration tests — palette → canvas → save → publish full flow
 
 ### Original Scope
-- [ ] Buttons: 10 variants (primary, ghost, outline, pill, icon, loading, etc.)
-- [ ] Inputs: text, email, password, search, textarea, with validation states
-- [ ] Dropdowns: select, multi-select, combobox
-- [ ] Sliders: range, color picker, opacity
-- [ ] Badges, tags, chips
-- [ ] Cards: product, testimonial, pricing, stat, feature
-- [ ] Navigation: nav bars, sidebars, breadcrumbs, tabs, pagination
-- [ ] Overlays: modals, drawers, tooltips, popovers
-- [ ] Standard props interface: every component accepts { id, styles, content, ariaLabel }
-- [ ] Component registry: catalog file Aria can reference by name
+- [x] Buttons: 10 variants (primary, ghost, outline, pill, icon, loading, etc.)
+- [x] Inputs: text, email, password, search, textarea, with validation states
+- [x] Dropdowns: select, multi-select, combobox
+- [x] Sliders: range, color picker, opacity
+- [x] Badges, tags, chips
+- [x] Cards: product, testimonial, pricing, stat, feature
+- [x] Navigation: nav bars, sidebars, breadcrumbs, tabs, pagination
+- [x] Overlays: modals, drawers, tooltips, popovers
+- [x] Standard props interface: every component accepts { id, styles, content, ariaLabel }
+- [x] Component registry: catalog file Aria can reference by name
 
 ---
 
@@ -243,55 +244,93 @@ for the majority of tasks in any planning workflow.
 
 ### Scope
 **Templates (rename + upgrade from demos):**
-- [ ] Rename `/demos` → `/templates` throughout codebase (routes, nav, Aria context, copy)
-- [ ] `ariaContext` type: `"demo"` → `"template"` everywhere
-- [ ] Individual product pages for all 8 templates: `app/templates/[themeId]/products/[slug]/page.tsx`
-- [ ] Link product cards in template product listings → detail pages
-- [ ] `TemplateAddToCart` component: Zustand cart, no Stripe, "Create your store" CTA at checkout
-- [ ] Template cart page: `app/templates/[themeId]/cart/page.tsx`
-- [ ] Jewelry template override: `app/templates/jewelry/*` → DB-backed (real cart, real checkout)
-- [ ] `navigate_to_product` Aria function: context-aware (`/templates/[themeId]/products/[slug]` vs `/products/[slug]`)
+- [x] Rename `/demos` → `/templates` throughout codebase (routes, nav, Aria context, copy)
+- [x] `ariaContext` type: `"demo"` → `"template"` everywhere
+- [x] Individual product pages for all 8 templates: `app/templates/[themeId]/products/[slug]/page.tsx`
+- [x] Link product cards in template product listings → detail pages
+- [x] `TemplateAddToCart` component: Zustand cart, no Stripe, "Create your store" CTA at checkout
+- [x] Template cart page: `app/templates/[themeId]/cart/page.tsx`
+- [x] Jewelry template override: `app/templates/jewelry/*` → DB-backed (real cart, real checkout)
+- [x] `navigate_to_product` Aria function: context-aware (`/templates/[themeId]/products/[slug]` vs `/products/[slug]`)
 
 **Aria Changelog:**
-- [ ] `lib/ariaChangelog.ts` — structured capability log with date + version + description
-- [ ] Injected into system prompt in `buildAriaConfig()`
-- [ ] `get_changelog` Aria function — answers "what's new?" / "what are your latest upgrades?"
+- [x] `lib/ariaChangelog.ts` — structured capability log with date + version + description
+- [x] Injected into system prompt in `buildAriaConfig()`
+- [x] `get_changelog` Aria function — answers "what's new?" / "what are your latest upgrades?"
 
 **Session Report Pad:**
-- [ ] `store/reportPad.ts` — Zustand store with entries, timestamps, export
-- [ ] `components/aria/ReportPad.tsx` — floating panel, bottom-left, collapsible
-- [ ] Entry types: observation | bug | navigation | test | summary | aria_note (color-coded)
-- [ ] Export: copy to clipboard + download as `.md` file
-- [ ] `write_to_report(text, type)` Aria function — available in ALL contexts
-- [ ] `clear_report` Aria function
-- [ ] `summarize_session` Aria function — generates structured session summary
-- [ ] Aria instructed to proactively document during owner test sessions
+- [x] `store/reportPad.ts` — Zustand store with entries, timestamps, export
+- [x] `components/aria/ReportPad.tsx` — floating panel, bottom-left, collapsible
+- [x] Entry types: observation | bug | navigation | test | summary | aria_note (color-coded)
+- [x] Export: copy to clipboard + download as `.md` file
+- [x] `write_to_report(text, type)` Aria function — available in ALL contexts
+- [x] `clear_report` Aria function
+- [x] `summarize_session` Aria function — generates structured session summary
+- [x] Aria instructed to proactively document during owner test sessions
 
 Full plan: `docs/plans/2026-03-11-p5-templates-aria-assistant.md`
 
 ---
 
-## Plan #6 — Visual Editor v1 — Inline Overlay (PENDING)
-**Model (locked 2026-03-11): Inline edit overlay on the live site.**
-The live site runs normally. "Edit Mode" toggle (floating, top-right) activates overlay.
-In edit mode: clicking any section/element opens a floating config panel *instead* of navigating.
-Config panels pipeline to: R2 image swap, text edit, color picker, link editor, metadata, remove.
-All edits route through existing draft → publish flow (Plan #2). Aria always available.
+## Plan #6 — Platform Shell + Visual Editor (✅ COMPLETE — 2026-03-13)
 
-### Scope
-- [ ] `EditModeProvider` — Zustand context: `editMode: boolean`, `selectedElement: string | null`
-- [ ] `EditModeToggle` — floating button (top-right), persists to sessionStorage
-- [ ] `EditOverlay` — wrapper that intercepts clicks in edit mode, prevents default navigation
-- [ ] `FloatingConfigPanel` — portal-rendered panel docked to selected element position
-- [ ] Config panel modules: ImagePicker (→ R2 pipeline), TextEditor, ColorPicker, LinkEditor, MetaEditor
-- [ ] Component palette drawer (left-side, collapsible — reuses P4 component registry)
-- [ ] Tier guard: Aria voice commands in edit mode locked behind Pro tier CTA
-- [ ] Save/publish flow: all edits route through existing SiteContent draft → live pipeline
+**Scope expanded from "inline overlay" to full platform shell.** The app transformed from
+disconnected pages into a unified mobile-first platform with DB-driven page composition,
+template cloning, and an inline editor with auto-save.
+
+### Phase 1: Data Foundation
+- [x] `Page` + `PageSection` Prisma models (soft FK via `componentSlug` string)
+- [x] CRUD API: `app/api/pages/`, `app/api/pages/[pageId]/`, `app/api/pages/[pageId]/sections/`
+- [x] Zod schemas: `createPageSchema`, `updatePageSchema`, `createSectionSchema`, `updateSectionSchema`
+- [x] `lib/templatePages.ts` — default page structures for all 8 themes
+- [x] `app/api/pages/seed/route.ts` — seed pages from active theme template
+
+### Phase 2: Platform Shell UI
+- [x] `store/shell.ts` — Zustand store with `persist` (activeTab survives reloads)
+- [x] `components/shell/TopBar.tsx` — slim 48px header replacing 4-mode Navbar
+- [x] `components/shell/BurgerDrawer.tsx` — full-screen overlay with accordion sections (Pages/Editor/Settings/Store/Account)
+- [x] `components/shell/BottomTabBar.tsx` — 5-tab mobile nav (Home/Pages/Aria/Dashboard/Manage), desktop-hidden
+- [x] `app/layout.tsx` — shell mounted, old Navbar preserved as `Navbar.legacy.tsx`
+
+### Phase 3: Page Renderer + Manager
+- [x] `lib/sectionRegistry.ts` — `React.lazy()` registry mapping componentSlug → component (11 types)
+- [x] `components/shell/SectionRenderer.tsx` — renders sections from DB with Suspense + edit mode support
+- [x] `app/pages/page.tsx` + `PageManagerClient.tsx` — page list, reorder, visibility toggle, delete
+- [x] `store/canvas.ts` — extended with `hydrateFromSections()`, `persistToServer()`, `isDirty`
+- [x] `components/editor/SectionInserter.tsx` — "+" button between sections in edit mode
+- [x] 9 stub section components in `components/sections/`
+
+### Phase 4: Template Cloning
+- [x] `app/api/sites/clone/route.ts` — clone theme pages + sections to user's site
+- [x] `components/shell/CloneTemplateButton.tsx` + `StartBlankButton.tsx`
+- [x] "Use template" badge on `/templates` gallery cards
+- [x] CTA section on `/templates/[themeId]` detail pages
+
+### Phase 5: Polish + Enhancements
+- [x] Draggable Aria orb — pointer events, 5px drag threshold, edge snapping, localStorage persistence
+- [x] Admin deprecation banner — "This panel is now accessible from the ☰ menu"
+- [x] Aria page commands: `list_pages`, `add_page`, `navigate_to_page` (member context)
+- [x] Auto-save with 2s debounce + SaveIndicator (Unsaved → Saving → Saved)
+- [x] Page preview mode (view as visitor)
+- [x] Rich onboarding empty state ("Start from template" / "Create blank page")
+- [x] Route-synced active tab via `usePathname()` + `useEffect`
+- [x] Active link highlighting in BurgerDrawer
+
+### Architecture locked (2026-03-13)
+- **Shell pattern:** TopBar + BurgerDrawer + BottomTabBar replaces the 4-mode Navbar (platform/template/member/store)
+- **Page composition:** `Page` → `PageSection[]` with soft FK to `Component.slug` via registry
+- **Canvas↔DB bridge:** `canvas.hydrateFromSections()` loads from DB, `canvas.persistToServer()` saves back
+- **Template cloning:** Select theme → clone TEMPLATE_PAGES → redirect to `/pages` manager
+- **Draggable orb:** localStorage key `storekit_aria_position`, edge snap, `BOTTOM_BAR_HEIGHT = 56` constraint
+- **New routes:** `/pages` (manager), `/pages/[slug]` (editor)
 
 ---
 
 ## Plan #7 — Visual Editor v2 (PENDING)
+> P6 laid the foundation: section-based composition, canvas store, SectionInserter, auto-save.
+> P7 deepens this with full Aria integration into the editing canvas.
 ### Scope
+- [x] Aria can add pages and navigate to them by voice (`add_page`, `navigate_to_page` — P6)
 - [ ] Aria integrated into canvas: "add a testimonials section after the hero"
 - [ ] Voice + mouse hybrid: Aria suggests, user confirms with click or voice
 - [ ] Aria sees canvas state (knows which components exist, their order)
@@ -300,13 +339,15 @@ All edits route through existing draft → publish flow (Plan #2). Aria always a
 ---
 
 ## Plan #8 — Theme Marketplace UI (PENDING)
-/demos is the theme marketplace — foundational work done in Platform Pivot
+/templates is the theme marketplace — foundational work done in PP + P6 (cloning flow)
 ### Scope
-- [ ] /themes route: grid of all available theme packs
-- [ ] Theme card: preview image, name, domain, Aria voice/personality preview
-- [ ] Install flow: pick theme → preview → confirm → seed DB → rebuild or revalidate
-- [ ] Switch theme: owner can switch active theme from dashboard
+- [x] /templates route: grid of all 8 available theme packs (P5)
+- [x] Theme card: preview image, name, domain, "Use template" badge (P5+P6)
+- [x] Install flow: pick theme → "Use template" → clone Pages+Sections → redirect to /pages (P6)
+- [x] Switch theme: owner can switch active theme from dashboard (P3)
+- [ ] Aria voice/personality preview on theme card (play sample)
 - [ ] Paid themes: some theme packs behind higher subscription tier
+- [ ] Theme preview iframe: hover to see live preview without navigating
 
 ---
 
@@ -493,12 +534,16 @@ The SDK makes these contracts public, typed, and packageable.
 
 ---
 
-## UI/UX Decisions (locked 2026-03-07)
-- **Aria interface:** Floating orb (bottom-right) — same orb owners know from shopping experience
-- **Dashboard first view:** Live site preview center + pages list left sidebar + Aria right sidebar
+## UI/UX Decisions (updated 2026-03-13)
+- **Shell pattern:** TopBar (48px) + BurgerDrawer (full-screen overlay) + BottomTabBar (5 tabs, mobile-only) — replaces 4-mode Navbar
+- **Aria interface:** Draggable floating orb (bottom-right) — drag with pointer events, edge-snaps, position persists in localStorage
+- **Page composition:** Owner manages pages at `/pages`, edits individual pages at `/pages/[slug]` with auto-save
+- **Template cloning:** `/templates` gallery → "Use template" → clones Page + PageSection records → redirects to `/pages`
 - **Component palette desktop:** Left collapsible drawer, categories with expand/collapse
 - **Component palette mobile:** Bottom sheet slides up from [+] button, touch-friendly category tabs
-- **Theme switching:** Instant preview toggle — /themes grid, hover previews iframe, click to apply
+- **Theme switching:** Instant preview toggle — /templates grid, hover previews iframe, click to apply
+- **Admin access:** Preserved at `/admin/*` routes, also linked from BurgerDrawer; deprecation banner guides users to shell
+- **BottomTabBar:** Hidden on desktop (`lg:hidden`), only for authenticated owners, route-synced active tab
 
 ---
 
@@ -509,13 +554,14 @@ The SDK makes these contracts public, typed, and packageable.
 - `"template"` — `/templates/[themeId]` (renamed from "demo"): full shopping AI — navigate, cart, recommend, describe products
 - `"member"` — `/dashboard` + admin: **personal runtime assistant + debugger**
 
-### Aria's Owner Role (P5+)
+### Aria's Owner Role (P5+P6)
 Aria is the owner's personal runtime assistant during development and production:
 - Navigate anywhere on the platform by voice command
 - Document test sessions in real-time → `write_to_report` → export `.md` → paste to coordinator (Claude Code)
 - Answer "what are your capabilities?" / "what's new?" from live `ARIA_CHANGELOG`
 - Proactively log bugs, observations, and navigation during testing sessions
 - Generate structured session summaries on request (`summarize_session`)
+- **Page management by voice** (P6): `list_pages`, `add_page`, `navigate_to_page` — member context only
 - Report Pad lives bottom-left of screen (opposite Aria orb) — floating, collapsible, persistent
 
 ---
@@ -524,12 +570,15 @@ Aria is the owner's personal runtime assistant during development and production
 - Next.js 16 App Router — server components default
 - Prisma v5 + Neon PostgreSQL — type-safe ORM
 - NextAuth v5 — auth foundation (already built)
-- Zustand — client state
+- Zustand — client state (with `persist` middleware for shell + canvas + report pad)
 - Stripe primary + PayPal secondary for billing
 - Gemini Live API for Aria voice (WebSocket)
 - CSS variables for theming (--theme-accent etc.)
 - NEXT_PUBLIC_THEME env var for build-time theme selection
 - Admin guard: ADMIN_EMAIL env var, enforced in Next.js middleware + API routes
+- **Page composition** (P6): `Page` → `PageSection[]` with soft FK (`componentSlug` string → `SECTION_REGISTRY`)
+- **Shell architecture** (P6): TopBar + BurgerDrawer + BottomTabBar — unified navigation replacing 4-mode Navbar
+- **Section rendering** (P6): `React.lazy()` registry in `lib/sectionRegistry.ts` — plugin-ready component loading
 
 ## Model Usage Policy (empirically calibrated 2026-03-08)
 

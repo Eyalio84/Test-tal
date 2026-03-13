@@ -21,6 +21,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <span className="text-xs text-ink/40 tracking-wide truncate min-w-0">{session.user?.email}</span>
         </div>
 
+        {/* Deprecation notice */}
+        <div className="mb-4 px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 flex items-center gap-2">
+          <span>This panel is now accessible from the ☰ menu → Editor / Settings sections.</span>
+        </div>
+
         <AdminNav />
 
         {children}

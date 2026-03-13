@@ -26,6 +26,10 @@ export default function TemplatesPage() {
                   className="object-cover transition duration-500 group-hover:scale-105 opacity-80 group-hover:opacity-100"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                {/* Use badge */}
+                <span className="absolute top-3 right-3 text-[10px] tracking-widest uppercase bg-white/90 text-stone-800 px-2.5 py-1 rounded-full font-medium shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                  Use template
+                </span>
                 <div className="absolute bottom-0 inset-x-0 p-4">
                   <p className="font-serif text-white text-lg">{theme.brand.name}</p>
                   <p className="text-white/60 text-xs mt-0.5">{theme.brand.tagline}</p>

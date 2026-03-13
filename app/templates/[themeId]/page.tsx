@@ -3,6 +3,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { THEMES } from "@/lib/theme"
 import { resolveTheme } from "@/lib/themeImages"
+import { CloneTemplateButton } from "@/components/shell/CloneTemplateButton"
+import { StartBlankButton } from "@/components/shell/StartBlankButton"
 
 export async function generateStaticParams() {
   return Object.keys(THEMES).map((id) => ({ themeId: id }))
@@ -37,6 +39,19 @@ export default async function TemplateHomePage({ params }: { params: Promise<{ t
           >
             {theme.hero.ctaText}
           </Link>
+        </div>
+      </section>
+
+      {/* Use template CTA */}
+      <section className="bg-stone-50 border-b border-stone-200">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <p className="text-sm text-stone-600">
+            Like this template? Make it yours.
+          </p>
+          <div className="flex items-center gap-3">
+            <StartBlankButton />
+            <CloneTemplateButton themeId={themeId} />
+          </div>
         </div>
       </section>
 

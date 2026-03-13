@@ -105,6 +105,7 @@ model Site {
   content   SiteContent[]
   snapshots SiteSnapshot[]
   products  Product[]
+  pages     Page[]
 }
 
 model User {
@@ -159,6 +160,35 @@ model Component {
   ariaName     String   // snake_case e.g. "primary_button" | "testimonial_card"
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model Page {
+  id        String        @id @default(cuid())
+  siteId    String?
+  site      Site?         @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  slug      String        // "home", "about", "products", custom
+  title     String
+  isVisible Boolean       @default(true)
+  order     Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  sections  PageSection[]
+
+  @@unique([siteId, slug])
+}
+
+model PageSection {
+  id            String   @id @default(cuid())
+  pageId        String
+  page          Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  componentSlug String   // references Component.slug (soft FK)
+  props         Json     @default("{}")
+  order         Int      @default(0)
+  isVisible     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([pageId, order])
 }
 
 model WebhookEvent {

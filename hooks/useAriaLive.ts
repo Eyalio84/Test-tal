@@ -180,6 +180,24 @@ When first connected, greet warmly in 1 sentence — introduce yourself and invi
         }, required: ["component_id"] } },
     ] : []),
 
+    // ── Page management functions (member only) ───────────────────────────
+    ...(ariaContext === "member" ? [
+      { name: "list_pages",
+        description: "List all pages for the user's site. Use when user asks 'what pages do I have', 'show me my pages', 'list pages'.",
+        parameters: { type: "OBJECT", properties: {} } },
+      { name: "add_page",
+        description: "Create a new page. Use when user says 'add a new page', 'create a page called X'.",
+        parameters: { type: "OBJECT", properties: {
+          title: { type: "STRING", description: "Page title e.g. 'About Us'" },
+          slug: { type: "STRING", description: "URL slug e.g. 'about-us' (auto-generated from title if omitted)" },
+        }, required: ["title"] } },
+      { name: "navigate_to_page",
+        description: "Navigate to the page manager or a specific page. Use when user says 'go to pages', 'show me the pages manager'.",
+        parameters: { type: "OBJECT", properties: {
+          slug: { type: "STRING", description: "Page slug to view, or omit for the page manager" },
+        } } },
+    ] : []),
+
     // ── Global functions — available in ALL contexts ────────────────────────
     { name: "get_changelog",
       description: "List Aria's recent capability upgrades. Use when user asks 'what's new', 'what can you do', 'what are your capabilities', 'what were your latest upgrades'.",
@@ -793,6 +811,35 @@ async function executeCommand(name: string, args: Record<string, unknown>): Prom
         `**Recent activity:**\n${recentEntries || "No entries yet."}`,
       ].join("\n")
       useReportPad.getState().addEntry(summary, "summary")
+      return undefined
+    }
+
+    // ── Page management commands ──────────────────────────────────────────
+    case "list_pages": {
+      const res = await fetch("/api/pages")
+      if (!res.ok) return "I couldn't load your pages."
+      const data = await res.json() as { pages: Array<{ title: string; slug: string; sections: unknown[]; isVisible: boolean }> }
+      if (!data.pages?.length) return "You don't have any pages yet. Say 'add a page' to create one, or go to the page manager."
+      const list = data.pages.map(p => `${p.title} (/${p.slug}, ${p.sections.length} sections${p.isVisible ? "" : ", hidden"})`).join(". ")
+      return `You have ${data.pages.length} pages: ${list}.`
+    }
+
+    case "add_page": {
+      const title = args.title as string
+      const slug = (args.slug as string) || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+      const res = await fetch("/api/pages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, slug }),
+      })
+      if (!res.ok) return `I couldn't create the page "${title}". It may already exist.`
+      return `Created page "${title}" at /${slug}. Go to the page manager to add sections.`
+    }
+
+    case "navigate_to_page": {
+      const slug = args.slug as string | undefined
+      const url = slug ? `/pages?view=${slug}` : "/pages"
+      dispatchCommand({ type: "NAVIGATE", url })
       return undefined
     }
 

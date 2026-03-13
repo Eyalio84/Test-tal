@@ -51,3 +51,27 @@ export const updateComponentSchema = createComponentSchema.partial()
 
 export type CreateComponentInput = z.infer<typeof createComponentSchema>
 export type UpdateComponentInput = z.infer<typeof updateComponentSchema>
+
+// ── Pages ───────────────────────────────────────────────────────────────────
+export const createPageSchema = z.object({
+  slug: z.string().min(1).max(64).regex(/^[a-z0-9-]+$/, "slug must be lowercase letters, numbers, hyphens"),
+  title: z.string().min(1).max(200),
+  isVisible: z.boolean().optional().default(true),
+  order: z.number().int().min(0).optional().default(0),
+})
+
+export const updatePageSchema = createPageSchema.partial()
+
+export const createSectionSchema = z.object({
+  componentSlug: z.string().min(1).max(64),
+  props: z.record(z.string(), z.any()).optional().default({}),
+  order: z.number().int().min(0).optional().default(0),
+  isVisible: z.boolean().optional().default(true),
+})
+
+export const updateSectionSchema = createSectionSchema.partial()
+
+export type CreatePageInput = z.infer<typeof createPageSchema>
+export type UpdatePageInput = z.infer<typeof updatePageSchema>
+export type CreateSectionInput = z.infer<typeof createSectionSchema>
+export type UpdateSectionInput = z.infer<typeof updateSectionSchema>

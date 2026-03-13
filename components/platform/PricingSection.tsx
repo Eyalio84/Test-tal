@@ -35,7 +35,7 @@ const TIERS: PricingTier[] = [
   },
 ]
 
-export function PricingSection() {
+export default function PricingSection() {
   return (
     <EditOverlay sectionId="cta" className="bg-zinc-900 px-6 py-20">
       <section className="w-full">

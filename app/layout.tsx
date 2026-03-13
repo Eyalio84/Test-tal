@@ -4,7 +4,9 @@ export const dynamic = "force-dynamic"
 import type { Metadata } from "next"
 import { Playfair_Display, Inter, Lexend, Fredoka, Lora, Cormorant_Garamond } from "next/font/google"
 import { Providers }           from "@/components/layout/Providers"
-import { Navbar }              from "@/components/layout/Navbar"
+import { TopBar }              from "@/components/shell/TopBar"
+import { BurgerDrawer }        from "@/components/shell/BurgerDrawer"
+import { BottomTabBar }        from "@/components/shell/BottomTabBar"
 import { Footer }              from "@/components/layout/Footer"
 import { FloatingDock }        from "@/components/ui/FloatingDock"
 import { AriaCommandDispatcher } from "@/components/aria/AriaCommandDispatcher"
@@ -58,9 +60,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Providers activeThemeId={theme.id}>
           <ShippingBanner />
           <SkipLink />
-          <Navbar />
-          <main id="main-content">{children}</main>
+          <TopBar />
+          <BurgerDrawer />
+          <main id="main-content" className="pt-12 pb-14 lg:pb-0">{children}</main>
           <Footer />
+          <BottomTabBar />
           <FloatingDock />
           <AriaCommandDispatcher />
           <ReportPad />

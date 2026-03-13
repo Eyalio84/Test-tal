@@ -55,3 +55,6 @@ next-env.d.ts
 # Image scout downloads — not committed, uploaded to R2 directly
 media/candidates/
 media/approved/
+
+# Git token
+docs/git_token.txt

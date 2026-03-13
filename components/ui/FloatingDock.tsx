@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useAria } from "@/store/aria"
 import { useA11y } from "@/store/a11y"
 import { useAriaLive } from "@/hooks/useAriaLive"
@@ -173,6 +173,35 @@ function MainOrb({
   )
 }
 
+// ── Drag position persistence ─────────────────────────────────────────────
+const STORAGE_KEY = "storekit_aria_position"
+const DRAG_THRESHOLD = 5
+const ORB_SIZE = 56 // w-14 = 56px
+const BOTTOM_BAR_HEIGHT = 56 // h-14 bottom tab bar
+
+interface OrbPosition { x: number; y: number }
+
+function loadPosition(): OrbPosition | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    return JSON.parse(raw)
+  } catch { return null }
+}
+
+function savePosition(pos: OrbPosition) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(pos)) } catch {}
+}
+
+function clamp(val: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, val))
+}
+
+function snapToEdge(x: number, _y: number, vw: number): OrbPosition {
+  const snappedX = x < vw / 2 ? 24 : vw - ORB_SIZE - 24
+  return { x: snappedX, y: _y }
+}
+
 // ── FloatingDock ───────────────────────────────────────────────────────────
 export function FloatingDock() {
   const { ariaState, isConnected, isOpen, setOpen } = useAria()
@@ -182,10 +211,65 @@ export function FloatingDock() {
   const reportEntries  = useReportPad((s) => s.entries)
   const toggleReport   = useReportPad((s) => s.toggleOpen)
 
+  // Drag state
+  const [pos, setPos] = useState<OrbPosition | null>(null)
+  const draggingRef = useRef(false)
+  const startRef = useRef({ x: 0, y: 0, px: 0, py: 0 })
+
   // Auto-sync Aria context (platform/demo/member) with current page
   useAriaPageContext()
 
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    setMounted(true)
+    const saved = loadPosition()
+    if (saved) {
+      // Validate against current viewport
+      const vw = window.innerWidth
+      const vh = window.innerHeight
+      setPos({
+        x: clamp(saved.x, 0, vw - ORB_SIZE),
+        y: clamp(saved.y, 0, vh - ORB_SIZE - BOTTOM_BAR_HEIGHT),
+      })
+    }
+  }, [])
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    const el = e.currentTarget as HTMLElement
+    el.setPointerCapture(e.pointerId)
+    draggingRef.current = false
+
+    const rect = el.getBoundingClientRect()
+    startRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      px: rect.left,
+      py: rect.top,
+    }
+  }, [])
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    const dx = e.clientX - startRef.current.x
+    const dy = e.clientY - startRef.current.y
+
+    if (!draggingRef.current && Math.abs(dx) + Math.abs(dy) < DRAG_THRESHOLD) return
+    draggingRef.current = true
+
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const newX = clamp(startRef.current.px + dx, 0, vw - ORB_SIZE)
+    const newY = clamp(startRef.current.py + dy, 0, vh - ORB_SIZE - BOTTOM_BAR_HEIGHT)
+
+    setPos({ x: newX, y: newY })
+  }, [])
+
+  const handlePointerUp = useCallback(() => {
+    if (draggingRef.current && pos) {
+      const snapped = snapToEdge(pos.x + ORB_SIZE / 2, pos.y, window.innerWidth)
+      setPos(snapped)
+      savePosition(snapped)
+    }
+  }, [pos])
+
   if (!mounted) return null
 
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
@@ -193,6 +277,12 @@ export function FloatingDock() {
   function handleAriaToggle() {
     if (isConnected) disconnect()
     else connect()
+  }
+
+  function handleOrbClick() {
+    if (!draggingRef.current) {
+      setOpen(!isOpen)
+    }
   }
 
   const actions = [
@@ -224,8 +314,13 @@ export function FloatingDock() {
     },
   ]
 
+  // Position style: custom position if dragged, otherwise default bottom-right (above tab bar)
+  const posStyle: React.CSSProperties = pos
+    ? { position: "fixed", left: pos.x, top: pos.y, zIndex: 50 }
+    : { position: "fixed", bottom: 72, right: 24, zIndex: 50 }
+
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <div style={posStyle} className="flex flex-col items-end gap-3">
 
       {/* Transcript bubble */}
       {isConnected && <TranscriptBubble />}
@@ -239,12 +334,19 @@ export function FloatingDock() {
         </div>
       )}
 
-      <MainOrb
-        ariaState={ariaState}
-        isConnected={isConnected}
-        isOpen={isOpen}
-        onClick={() => setOpen(!isOpen)}
-      />
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        style={{ touchAction: "none" }}
+      >
+        <MainOrb
+          ariaState={ariaState}
+          isConnected={isConnected}
+          isOpen={isOpen}
+          onClick={handleOrbClick}
+        />
+      </div>
     </div>
   )
 }
