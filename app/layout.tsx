@@ -15,7 +15,6 @@ import { LiveRegion }          from "@/components/ui/LiveRegion"
 import { AccessibilityPanel }  from "@/components/ui/AccessibilityPanel"
 import { ShippingBanner }      from "@/components/ui/ShippingBanner"
 import { ThemeApplier }        from "@/components/layout/ThemeApplier"
-import { EditModeToggle }            from "@/components/editor/EditModeToggle"
 import { ComponentPaletteDrawer }    from "@/components/editor/ComponentPaletteDrawer"
 import { FloatingConfigPanel }       from "@/components/editor/FloatingConfigPanel"
 import { getActiveTheme }      from "@/lib/getActiveTheme"
@@ -51,8 +50,6 @@ const fontVars = [
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const theme = await getActiveTheme()
-  const session = await auth()
-  const isOwner = session?.user?.email === env.ADMIN_EMAIL
   return (
     <html lang="en" className={fontVars}>
       <head>
@@ -71,7 +68,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ReportPadToggle />
           <LiveRegion />
           <AccessibilityPanel />
-          <EditModeToggle isOwner={isOwner} />
           <ComponentPaletteDrawer />
           <FloatingConfigPanel />
         </Providers>

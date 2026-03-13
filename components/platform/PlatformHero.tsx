@@ -1,10 +1,15 @@
+"use client"
+
 import Link from "next/link"
+import { EditOverlay } from "@/components/editor/EditOverlay"
 
 export function PlatformHero() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden"
-      style={{ background: "radial-gradient(ellipse at 50% 40%, #1a0f2e 0%, #0e0a18 50%, #080610 100%)" }}
-    >
+    <EditOverlay sectionId="hero" className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden">
+      <section
+        className="w-full h-full"
+        style={{ background: "radial-gradient(ellipse at 50% 40%, #1a0f2e 0%, #0e0a18 50%, #080610 100%)" }}
+      >
       {/* Outer ambient glow — large, warm */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
         <div
@@ -96,6 +101,7 @@ export function PlatformHero() {
       <div className="absolute bottom-8 left-0 right-0 flex justify-center">
         <span className="text-zinc-600 text-xs animate-bounce select-none">↓</span>
       </div>
-    </section>
+      </section>
+    </EditOverlay>
   )
 }

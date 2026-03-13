@@ -21,13 +21,17 @@ export default function DashboardClient(props: Props) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ tier: props.tier }),
         })
-        const { url } = await res.json()
-        if (url) window.location.href = url
+        if (res.ok) {
+          const { url } = await res.json()
+          if (url) window.location.href = url
+        }
 
       } else if (props.action === "portal") {
         const res = await fetch("/api/subscription/portal", { method: "POST" })
-        const { url } = await res.json()
-        if (url) window.location.href = url
+        if (res.ok) {
+          const { url } = await res.json()
+          if (url) window.location.href = url
+        }
 
       } else if (props.action === "forget") {
         await fetch("/api/aria/memory", {

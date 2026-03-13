@@ -62,7 +62,7 @@ export default function AdminComponentsPage() {
         </div>
         <button
           onClick={openNewComponent}
-          className="px-3 py-1.5 bg-ink text-paper rounded text-sm hover:bg-ink/90 transition"
+          className="px-3 py-1.5 bg-stone-900 text-white rounded text-sm hover:bg-stone-700 transition"
         >
           + New Component
         </button>

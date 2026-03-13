@@ -117,6 +117,7 @@ When first connected, greet warmly in 1 sentence — introduce yourself and invi
     { name: "publish_changes",   description: "Publish all draft changes to the live site",                            parameters: { type: "OBJECT", properties: {} } },
     { name: "undo_edit",         description: "Undo the last edit",                                                     parameters: { type: "OBJECT", properties: {} } },
     { name: "redo_edit",         description: "Redo the last undone edit",                                              parameters: { type: "OBJECT", properties: {} } },
+    { name: "toggle_edit_mode",  description: "Toggle the visual editor edit mode on or off for the live site",        parameters: { type: "OBJECT", properties: {}, required: [] } },
 
     // ── Admin + dev functions (member context only) ────────────────────────
     ...(ariaContext === "member" ? [
@@ -237,6 +238,7 @@ STRICT SILENCE RULES — follow exactly:
 - summarize_session: one brief confirmation after writing ("Summary added to the report pad.").
 - start_platform_tour: begin the tour immediately. Navigate to the first phase and speak naturally.
 - platform_status: read the status report naturally in 3-4 sentences. Be clear and grounding.
+- toggle_edit_mode: execute silently if toggled on. Say "Edit mode activated." if on, "Edit mode off." if off.
 
 ${ariaContext === "member"
   ? `When first connected: greet the owner proactively. Mention the single most recent upgrade from your changelog. Then say what's available right now — you can give a full platform tour, run a test session, edit by voice, or navigate anywhere. Invite them to say "give me a tour" or tell you what they want. Keep it to 2-3 sentences. Be warm and confident — you know this platform well.`
@@ -621,6 +623,13 @@ async function executeCommand(name: string, args: Record<string, unknown>): Prom
       const data = await r.json() as { content?: Record<string, string> }
       if (data.content) aria().setDraftContent(data.content)
       return undefined
+    }
+
+    case "toggle_edit_mode": {
+      const { useEditMode } = await import("@/store/editMode")
+      const { toggleEditMode, editMode } = useEditMode.getState()
+      toggleEditMode()
+      return editMode ? "Exited edit mode." : "Edit mode activated."
     }
 
     // ── Admin / dev commands ───────────────────────────────────────────────

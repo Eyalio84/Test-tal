@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link"
+import { EditOverlay } from "@/components/editor/EditOverlay"
 
 interface PricingTier {
   name:        string
@@ -34,7 +37,8 @@ const TIERS: PricingTier[] = [
 
 export function PricingSection() {
   return (
-    <section className="bg-zinc-900 px-6 py-20">
+    <EditOverlay sectionId="cta" className="bg-zinc-900 px-6 py-20">
+      <section className="w-full">
       <div className="max-w-4xl mx-auto">
         {/* Heading */}
         <div className="mb-12 flex flex-col gap-2 text-center">
@@ -94,6 +98,7 @@ export function PricingSection() {
           ))}
         </div>
       </div>
-    </section>
+      </section>
+    </EditOverlay>
   )
 }

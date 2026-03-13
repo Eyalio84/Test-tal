@@ -14,6 +14,7 @@ import React from "react"
 import { createPortal } from "react-dom"
 import * as devLogger   from "@/lib/devLogger"
 import * as devHubStore from "@/lib/devHubStore"
+import { useEditMode }  from "@/store/editMode"
 import { QueryTab }      from "./tabs/QueryTab"
 import { AriaTab }       from "./tabs/AriaTab"
 import { AriaConfigTab } from "./tabs/AriaConfigTab"
@@ -53,6 +54,8 @@ export function DevHub() {
   const [tab, setTab]     = React.useState<Tab>("query")
   const [stats, setStats] = React.useState(devLogger.getStats())
   const [mounted, setMounted] = React.useState(false)
+  const editMode      = useEditMode((s) => s.editMode)
+  const toggleEditMode = useEditMode((s) => s.toggleEditMode)
 
   React.useEffect(() => { setMounted(true) }, [])
 
@@ -130,7 +133,19 @@ export function DevHub() {
           }}>
             STOREKIT DEV
           </span>
-          <div style={{ display: "flex", gap: 4 }}>
+          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+            <button
+              onClick={toggleEditMode}
+              title="Toggle edit mode"
+              style={{
+                ...hdrBtnStyle,
+                background: editMode ? "#f59e0b" : "rgba(255,255,255,0.08)",
+                color: editMode ? "#0f172a" : "#94a3b8",
+                fontWeight: "bold",
+              }}
+            >
+              {editMode ? "✕ EDIT" : "✏ EDIT"}
+            </button>
             <button onClick={handleCopyReport} style={hdrBtnStyle} title="Copy log report">CPY</button>
             <button onClick={handleClear}      style={hdrBtnStyle} title="Clear all logs">CLR</button>
             <button onClick={handleClose} style={{ ...hdrBtnStyle, color: "#ef4444" }}>×</button>
